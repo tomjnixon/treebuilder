@@ -3,3 +3,7 @@ deps/
 ebin/
 .erlang.mk
 treebuilder.d
+priv/static/em_main.js
+priv/static/em_main.js.mem
+priv/static/js/main.js
+node_modules
