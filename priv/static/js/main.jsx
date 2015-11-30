@@ -222,11 +222,19 @@ var EditorPreview = React.createClass({
             mode: "text/x-c++src",
         };
         
+        var errors;
+        if (this.state.errors == null)
+            errors = <div/>;
+        else {
+            var html = {__html: ansi_up.ansi_to_html(this.state.errors)};
+            errors = <pre dangerouslySetInnerHTML={html} />;
+        }
+        
         return (<div>
                     {preview}
                     <button onClick={this.compile} >Preview</button>
                     <ReactCodeMirror value={this.state.cpp_code} onChange={this.update_cpp_code} options={cm_options} />
-                    <div>{this.state.errors}</div>
+                    {errors}
                 </div>
                 );
     },
