@@ -41,7 +41,7 @@ handle_call({compile_js, CppCode}, _From, State) ->
     
     ok = file:write_file(InFile, CppCode),
     
-    Cmd = lists:flatten(io_lib:format("/usr/lib/emscripten/em++ -O2 -s SIDE_MODULE=1 -I~s -o ~s ~s ~s",
+    Cmd = lists:flatten(io_lib:format("/usr/lib/emscripten/em++ -s SIDE_MODULE=1 -I~s -o ~s ~s ~s",
                         [IncDir,
                          OutFile,
                          Wrapper,

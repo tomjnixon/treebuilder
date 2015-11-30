@@ -37,16 +37,21 @@ function load_module(src) {
     
     module._c_setup();
     
-    return function() {
-        module._c_loop();
-        
-        if (leds_updated[0]) {
-            leds_updated[0] = 0;
-            return ledColors;
-        } else {
-            return null;
-        }
-    }
+    return {
+        dispose: function() {
+            module.cleanups.forEach(function(cleanup) { cleanup() });
+        },
+        get_colors: function() {
+            module._c_loop();
+
+            if (leds_updated[0]) {
+                leds_updated[0] = 0;
+                return ledColors;
+            } else {
+                return null;
+            }
+        },
+    };
 }
 
 var Preview = React.createClass({
@@ -61,17 +66,13 @@ var Preview = React.createClass({
         var NEAR = 0.1;
         var FAR = 10000;
 
-        // get the DOM element to attach to
-        // - assume we've got jQuery to hand
-        var container = this
-
         // create a WebGL renderer, camera
         // and a scene
         var renderer = new THREE.WebGLRenderer();
         
         var camera = new THREE.PerspectiveCamera( 45, WIDTH / HEIGHT, 1, 10000 );
 
-        var controls = new THREE.OrbitControls( camera );
+        var controls = new THREE.OrbitControls( camera, this._container );
 
         var scene = new THREE.Scene();
 
@@ -138,9 +139,7 @@ var Preview = React.createClass({
             
             renderer.render(scene, camera);
             
-            this.setState({
-                animationCallback: requestAnimationFrame(animationCallback)
-            });
+            this._animationCallbackReq = requestAnimationFrame(animationCallback);
         }).bind(this);
         
         animationCallback();
@@ -152,20 +151,22 @@ var Preview = React.createClass({
             material: material,
             texture: texture,
             controls: controls,
+            renderer: renderer,
         });
     },
     
     componentWillUnmount: function() {
-        if (this.state.spincameracallback !== null) {
-            cancelAnimationFrame(this.state.spincameracallback);
+        if (this._animationCallbackReq !== null) {
+            cancelAnimationFrame(this._animationCallbackReq);
         }
         
-        this.state.scene.dispose();
-        this.state.points.dispose();
+        // this.state.scene.dispose();
+        // this.state.points.dispose();
         this.state.particles.dispose();
         this.state.material.dispose();
         this.state.texture.dispose();
         this.state.controls.dispose();
+        this.state.renderer.dispose();
     },
     
     render: function() {
@@ -174,6 +175,63 @@ var Preview = React.createClass({
         }).bind(this)} />);
     }
 });
+
+var EditorPreview = React.createClass({
+    getInitialState: function() {
+        return {
+            cpp_code: this.props.initial_cpp_code,
+            state: "initial",
+            errors: null,
+            module: null,
+        };
+    },
+    compile: function() {
+        if (this.state.state == "compiling")
+            return;
+        
+        if (this.state.module != null) {
+            this.state.module.dispose();
+            this.setState({module: null});
+        }
+        
+        compile_cpp(this.state.cpp_code, (function(js_code, errors) {
+            if (js_code === null) {
+                this.setState({state: "error", get_colors: null});
+            } else {
+                this.setState({
+                    state: "compiled",
+                    module: load_module(js_code),
+                });
+            }
+            this.setState({errors: errors});
+        }).bind(this));
+        
+        this.setState({state: "compiling"});
+    },
+    update_cpp_code: function(new_cpp_code) {
+        this.setState({cpp_code: new_cpp_code});
+    },
+    render: function() {
+        var preview = (this.state.state == "compiled"
+            ? <Preview get_colors={this.state.module.get_colors} />
+            : <div>{this.state.state}</div>);
+        
+        var cm_options = {
+            lineNumbers: true,
+            matchBrackets: true,
+            mode: "text/x-c++src",
+        };
+        
+        return (<div>
+                    {preview}
+                    <button onClick={this.compile} >Preview</button>
+                    <ReactCodeMirror value={this.state.cpp_code} onChange={this.update_cpp_code} options={cm_options} />
+                    <div>{this.state.errors}</div>
+                </div>
+                );
+    },
+});
+
 
 
 function get_test_mod(callback) {
@@ -189,17 +247,10 @@ function get_test_mod(callback) {
 
 function test() {
     get_test_mod(function (cpp_code) {
-        console.log("compiling: " + cpp_code);
-        compile_cpp(cpp_code, function(js_code, errors) {
-            console.log("js: " + js_code);
-            console.log("errors: " + errors);
-            var get_colors = load_module(js_code);
-            
-            ReactDOM.render(
-                    <Preview get_colors={get_colors} />,
-                    document.getElementById('container')
-                    );
-        });
+        ReactDOM.render(
+                <EditorPreview initial_cpp_code={cpp_code} />,
+                document.getElementById('container')
+                );
     });
 }
 
