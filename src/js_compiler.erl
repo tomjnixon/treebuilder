@@ -34,15 +34,13 @@ handle_call({compile_js, CppCode}, _From, State) ->
     JsCompileDir = filename:join(code:priv_dir(treebuilder), "js_compile"),
     Wrapper = filename:join(JsCompileDir, "js_wrap.cpp"),
     
-    IncDir = filename:join(code:priv_dir(treebuilder), "compile"),
-    
     InFile = lib:nonl(os:cmd("mktemp /tmp/XXXXXX.cpp")),
     OutFile = lib:nonl(os:cmd("mktemp /tmp/XXXXXX.js")),
     
     ok = file:write_file(InFile, CppCode),
     
     Cmd = lists:flatten(io_lib:format("/usr/lib/emscripten/em++ -Wall -Werror -fcolor-diagnostics -s SIDE_MODULE=1 -I~s -o ~s ~s ~s",
-                        [IncDir,
+                        [JsCompileDir,
                          OutFile,
                          Wrapper,
                          InFile])),

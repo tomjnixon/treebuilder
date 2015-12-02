@@ -1,0 +1,21 @@
+#include "WProgram.h"
+#include "real_pattern.h"
+#include "sketches.h"
+
+{% for name in names %}
+namespace sketch_{{ name }} {
+    #include "../sketches/{{ name }}.cpp"
+};
+{% endfor %}
+
+Sketch sketch_array[] = {
+{% for name in names %}
+    {&sketch_{{ name }}::setup, sketch_{{ name }}::loop},
+{% endfor %}
+};
+
+void get_sketches(Sketch **sketches, int *n) {
+    *sketches = sketch_array;
+    *n = sizeof(sketch_array) / sizeof(sketch_array[0]);
+}
+
