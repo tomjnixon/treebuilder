@@ -3,6 +3,7 @@
 
 %% API.
 -export([start_link/0]).
+-export([stop/1]).
 -export([compile_js/1]).
 
 %% gen_server.
@@ -21,6 +22,9 @@
 -spec start_link() -> {ok, pid()}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+
+stop(Ref) ->
+    gen_server:stop(Ref).
 
 compile_js(CppCode) -> 
     gen_server:call(?MODULE, {compile_js, CppCode}).
