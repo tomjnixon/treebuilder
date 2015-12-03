@@ -1,5 +1,5 @@
 #include "WProgram.h"
-#include "real_pattern.h"
+#include "pattern.h"
 #include "sketches.h"
 
 {% for name in names %}

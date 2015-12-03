@@ -1,4 +1,4 @@
-#include "real_pattern.h"
+#include "pattern.h"
 
 void setPixel(uint32_t num, int color) {
 }
