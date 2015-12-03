@@ -42,6 +42,10 @@ handle_call({compile_for_device, CppCodes}, _From, State) ->
     exec:run([os:find_executable("rm"), "-rf", SrcPath, SketchesPath], [sync]),
     exec:run([os:find_executable("mkdir"), "-p", SketchesPath], [sync]),
     
+    % this dependency file causes problems when the number of sketches decreases
+    exec:run([os:find_executable("rm"), "-f",
+            filename:join(TemplateDir, "build/src/wrap_sketches.d")], [sync]),
+    
     % Put the correct code in the src dir.
     exec:run([os:find_executable("cp"), "-r", CompileDir, SrcPath], [sync]),
     
