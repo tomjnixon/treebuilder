@@ -39,11 +39,14 @@ handle_call({compile_js, CppCode}, _From, State) ->
     
     ok = file:write_file(InFile, CppCode),
     
-    Cmd = lists:flatten(io_lib:format("/usr/lib/emscripten/em++ -Wall -Werror -fcolor-diagnostics -s SIDE_MODULE=1 -I~s -o ~s ~s ~s",
-                        [JsCompileDir,
-                         OutFile,
-                         Wrapper,
-                         InFile])),
+    Cmd = ["/usr/lib/emscripten/em++",
+           "-Wall", "-Werror", "-fcolor-diagnostics",
+           "-s", "SIDE_MODULE=1",
+           "-I", JsCompileDir,
+           "-o", OutFile,
+           Wrapper,
+           InFile
+          ],
     
     {Status, Props} = exec:run(Cmd, [sync, stdout, stderr]),
     
