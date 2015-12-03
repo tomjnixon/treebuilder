@@ -8,8 +8,17 @@ start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
-    Procs = [{js_compiler, {js_compiler, start_link, []}, permanent, 5000, worker, [js_compiler]},
-             {device_compiler, {device_compiler, start_link, []}, permanent, 5000, worker, [device_compiler]},
-             {device_manager, {device_manager, start_link, []}, permanent, 5000, worker, [device_manager]}
+    Procs = [{js_compiler,
+              {js_compiler, start_link, []},
+              permanent, 5000, worker, [js_compiler]},
+             {device_compiler,
+              {device_compiler, start_link, []},
+              permanent, 5000, worker, [device_compiler]},
+             {sketch_manager,
+              {sketch_manager, start_link, []},
+              permanent, 5000, worker, [sketch_manager]},
+             {device_manager,
+              {device_manager, start_link, []},
+              permanent, 5000, worker, [device_manager]}
             ],
     {ok, {{one_for_one, 1, 5}, Procs}}.
