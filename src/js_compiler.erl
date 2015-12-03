@@ -31,6 +31,7 @@ init([]) ->
     {ok, #state{}}.
 
 handle_call({compile_js, CppCode}, _From, State) ->
+    CompileDir = filename:join(code:priv_dir(treebuilder), "compile"),
     JsCompileDir = filename:join(code:priv_dir(treebuilder), "js_compile"),
     Wrapper = filename:join(JsCompileDir, "js_wrap.cpp"),
     
@@ -42,7 +43,9 @@ handle_call({compile_js, CppCode}, _From, State) ->
     Cmd = ["/usr/lib/emscripten/em++",
            "-Wall", "-Werror", "-fcolor-diagnostics",
            "-s", "SIDE_MODULE=1",
+           "-DJS_MODE",
            "-I", JsCompileDir,
+           "-I", CompileDir,
            "-o", OutFile,
            Wrapper,
            InFile

@@ -47,8 +47,8 @@ void loop() {
     if (millis() > next_time) {
         next_time += 60;
         
-        for (int i = 0; i < numLeds; i++)
-            setPixel(i, makeColor(((offset + i) % numLeds * 359) / numLeds, 100, 50));
+        for (int i = 0; i < num_leds; i++)
+            setPixel(i, makeColor(((offset + i) % num_leds * 359) / num_leds, 100, 50));
         show();
         
         offset++;

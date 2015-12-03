@@ -27,13 +27,18 @@ function load_lib(src) {
 function load_module(src) {
     var module = load_lib(src);
     
-    var numLeds = module._get_numLeds();
+    var num_leds = module._get_num_leds();
     
     var ledColors_ptr = module._get_ledColors_out();
-    var ledColors = new Uint32Array(Module.HEAPU32.buffer, ledColors_ptr, numLeds);
+    var ledColors = new Uint32Array(Module.HEAPU32.buffer, ledColors_ptr, num_leds);
     
     var leds_updated_ptr = module._get_leds_updated();
     var leds_updated = new Uint8Array(Module.HEAPU8.buffer, leds_updated_ptr, 1);
+    
+    var leds_positions_ptr = module._get_led_positions();
+    var leds_positions_stride = module._get_led_positions_stride();
+    var leds_positions = new Int8Array(Module.HEAP8.buffer, leds_positions_ptr,
+            leds_positions_stride * num_leds);
     
     module._c_setup();
     
@@ -41,6 +46,7 @@ function load_module(src) {
         dispose: function() {
             module.cleanups.forEach(function(cleanup) { cleanup() });
         },
+        num_leds: num_leds,
         get_colors: function() {
             module._c_loop();
 
@@ -51,6 +57,18 @@ function load_module(src) {
                 return null;
             }
         },
+        get_positions: function() {
+            var positions = [];
+            for (var i = 0; i < num_leds; i++) {
+                var base = leds_positions_stride * i;
+                var led_position = new THREE.Vector3(
+                        leds_positions[base + 0],
+                        leds_positions[base + 2],
+                        leds_positions[base + 1]);
+                positions.push(led_position);
+            }
+            return positions;
+        }
     };
 }
 
@@ -75,6 +93,7 @@ var Preview = React.createClass({
         var controls = new THREE.OrbitControls( camera, this._container );
 
         var scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2( 0x000000, 0.001 );
 
         // the camera starts at 0,0,0 so pull it back
         camera.position.z = 500;
@@ -88,7 +107,6 @@ var Preview = React.createClass({
 
 
         // create the particle variables
-        var particleCount = 200;
         var particles = new THREE.Geometry();
         var texture = THREE.ImageUtils.loadTexture("/assets/img/particle.png")
         var material = new THREE.PointsMaterial({
@@ -96,25 +114,17 @@ var Preview = React.createClass({
             size: 50,
             map: texture,
             blending: THREE.AdditiveBlending,
+            depthTest: false,
             transparent: true,
             vertexColors: THREE.VertexColors
         });
+        
+        particles.vertices = this.props.module.get_positions();
 
-        // now create the individual particles
-        for(var p = 0; p < particleCount; p++) {
-
-            // create a particle with random
-            // position values, -250 -> 250
-            var pX = Math.random() * 500 - 250;
-            var pY = Math.random() * 500 - 250;
-            var pZ = Math.random() * 500 - 250;
-            var particle = new THREE.Vector3(pX, pY, pZ);
-            
+        // Add a random color for each particle
+        for(var p = 0; p < particles.vertices.length; p++) {
             var color = new THREE.Color();
             color.setHSL( Math.random(), 1.0, 0.5 );
-
-            // add it to the geometry
-            particles.vertices.push(particle);
             particles.colors.push(color);
         }
 
@@ -129,7 +139,7 @@ var Preview = React.createClass({
         scene.add(points);
 
         var animationCallback = (function() {
-            var colors = this.props.get_colors();
+            var colors = this.props.module.get_colors();
             if (colors !== null) {
                 for (var i = 0; i < colors.length; i++)
                     particles.colors[i].set(colors[i]);
@@ -196,7 +206,7 @@ var EditorPreview = React.createClass({
         
         compile_cpp(this.state.cpp_code, (function(js_code, errors) {
             if (js_code === null) {
-                this.setState({state: "error", get_colors: null});
+                this.setState({state: "error"});
             } else {
                 this.setState({
                     state: "compiled",
@@ -213,7 +223,7 @@ var EditorPreview = React.createClass({
     },
     render: function() {
         var preview = (this.state.state == "compiled"
-            ? <Preview get_colors={this.state.module.get_colors} />
+            ? <Preview module={this.state.module} />
             : <div>{this.state.state}</div>);
         
         var cm_options = {

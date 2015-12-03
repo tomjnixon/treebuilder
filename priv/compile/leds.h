@@ -10,7 +10,7 @@ typedef union {
 } LED;
 
 extern const LED *const leds;
-extern const int num_leds;
+const int num_leds = 250;
 
 extern const int8_t axis_min[3];
 extern const int8_t axis_max[3];

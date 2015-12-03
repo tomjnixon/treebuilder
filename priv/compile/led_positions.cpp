@@ -260,5 +260,3 @@ const LED *const get_led_positions(void) {
 }
 
 const LED *const leds = get_led_positions();
-
-const int num_leds = sizeof(led_positions_array) / sizeof(led_positions_array[0]);
