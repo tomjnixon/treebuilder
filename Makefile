@@ -7,6 +7,8 @@ DEPS = cowboy jiffy exec sync erlydtl srly
 # Whitespace to be used when creating files from templates.
 SP = 4
 
+SHELL_OPTS=-config rel/sys.config
+
 app:: priv/static/js/main.js priv/static/js/react-codemirror.js priv/static/em_main.js
 
 priv/static/em_main.js: priv/js_compile/em_main.cpp priv/compile/pattern.h
