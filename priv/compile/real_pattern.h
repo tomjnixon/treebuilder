@@ -2,7 +2,8 @@
 #define REAL_PATTERN_H
 
 #include <stdint.h>
-const int numLeds = 200;
+#include "leds.h"
+
 const int brightness = 100;
 
 void setPixel(uint32_t num, int color);

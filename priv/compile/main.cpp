@@ -1,5 +1,6 @@
 #include "WProgram.h"
 #include "sketches.h"
+#include "leds.h"
 
 namespace sketches {
     Sketch *sketches;
