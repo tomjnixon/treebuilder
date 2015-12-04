@@ -67,7 +67,8 @@ install(Nodes) ->
 %% gen_server.
 
 init([]) ->
-    {ok, #state{}}.
+    State=updated_code(#state{}, []),
+    {ok, State}.
 
 handle_call({get_sketch_state, Name}, _From, State) ->
     F = fun() -> case mnesia:read(treebuilder_sketch, Name) of
