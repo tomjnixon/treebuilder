@@ -6,6 +6,7 @@
 %% API.
 -export([start_link/0]).
 -export([install/1]).
+-export([get_sketch_state/1]).
 -export([save/2]).
 -export([enable/1]).
 -export([disable/1]).
@@ -42,6 +43,8 @@
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
+get_sketch_state(Name) ->
+    gen_server:call(?MODULE, {get_sketch_state, Name}).
 save(Name, CppCode) ->
     gen_server:call(?MODULE, {save, Name, CppCode}).
 
@@ -66,11 +69,10 @@ install(Nodes) ->
 init([]) ->
     {ok, #state{}}.
 
-handle_call({get_js, Id}, _From, State) ->
-    F = fun() -> case mnesia:read(treebuilder_sketch, Id) of
+handle_call({get_sketch_state, Name}, _From, State) ->
+    F = fun() -> case mnesia:read(treebuilder_sketch, Name) of
                     [] -> null;
-                    [#treebuilder_sketch{state=error}] -> null;
-                    [#treebuilder_sketch{state=compiles, js_code=JsCode}] -> JsCode
+                    [Sketch] -> get_user_state(Sketch)
                  end
         end,
     {reply, mnesia:activity(transaction, F), State};
