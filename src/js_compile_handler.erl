@@ -11,14 +11,12 @@
 init(_, Req, _Opts) ->
     {ok, Req, #state{}}.
 
-handle(Req, State=#state{}) ->
-    {ok, Json, Req2} = cowboy_utils:read_json(Req),
-    
-    #{<<"cpp_code">> := CppCode} = Json,
-    {JsCode, Errors} = js_compiler:compile_js(CppCode),
-    
-    {ok, Req3} = cowboy_utils:reply_json(200, #{js_code => JsCode, errors => Errors}, Req2),
-    {ok, Req3, State}.
+handle(Req, State1) ->
+    cowboy_utils:json_req_response(Req, State1,
+      fun (#{<<"cpp_code">> := CppCode}, State) ->
+              {JsCode, Errors} = js_compiler:compile_js(CppCode),
+              {ok, #{js_code => JsCode, errors => Errors}, State}
+      end).
 
 terminate(_Reason, _Req, _State) ->
     ok.
