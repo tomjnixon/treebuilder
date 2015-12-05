@@ -14,11 +14,11 @@ init([]) ->
              {device_compiler,
               {device_compiler, start_link, []},
               permanent, 5000, worker, [device_compiler]},
-             {sketch_manager,
-              {sketch_manager, start_link, []},
-              permanent, 5000, worker, [sketch_manager]},
              {device_manager,
               {device_manager, start_link, []},
-              permanent, 5000, worker, [device_manager]}
+              permanent, 5000, worker, [device_manager]},
+             {sketch_manager,
+              {sketch_manager, start_link, []},
+              permanent, 5000, worker, [sketch_manager]}
             ],
-    {ok, {{one_for_one, 1, 5}, Procs}}.
+    {ok, {{one_for_one, 2, 7}, Procs}}.
