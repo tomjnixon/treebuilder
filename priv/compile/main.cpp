@@ -1,6 +1,7 @@
 #include "WProgram.h"
 #include "sketches.h"
 #include "leds.h"
+#include "pattern_impl.h"
 
 namespace sketches {
     Sketch *sketches;
@@ -12,6 +13,8 @@ namespace sketches {
 
     void setup(void) {
         get_sketches(&sketches, &num_sketches);
+        
+        pattern_impl::setup();
         
         current_sketch = 0;
         next_time = millis() + sketch_run_time;
