@@ -6,7 +6,7 @@ uint32_t ledColors[num_leds];
 uint32_t ledColors_out[num_leds];
 volatile bool leds_updated;
 
-void setPixel(uint32_t num, int color) {
+void setPixel(uint32_t num, uint32_t color) {
     ledColors[num] = color;
 }
 void setPixel(uint32_t num, uint8_t red, uint8_t green, uint8_t blue) {
