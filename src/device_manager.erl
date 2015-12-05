@@ -73,8 +73,11 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 %% private.
-%% 
-ensure_serial_connected(State=#state{serial_pid=none}) ->
+
+% Try to connect Ntries times.
+ensure_serial_connected(_State, 0) ->
+    erlang:error(could_not_connect);
+ensure_serial_connected(State=#state{serial_pid=none}, Ntries) ->
     Fname = "/dev/ttyACM0",
     case file:read_file_info(Fname) of
         {ok, _} ->
@@ -82,10 +85,14 @@ ensure_serial_connected(State=#state{serial_pid=none}) ->
             State#state{serial_pid=Pid};
         {error, _} ->
             timer:sleep(500),
-            ensure_serial_connected(State)
+            ensure_serial_connected(State, Ntries - 1)
     end;
-ensure_serial_connected(State=#state{serial_pid=_Pid}) -> State.
+ensure_serial_connected(State=#state{serial_pid=_Pid}, _Ntries) -> State.
 
+% Make sure we're connected.
+ensure_serial_connected(State) -> ensure_serial_connected(State, 10).
+
+% Make sure we're disconnected.
 ensure_serial_disconnected(State=#state{serial_pid=none}) -> State;
 ensure_serial_disconnected(State=#state{serial_pid=Pid}) ->
     ok = srly:close(Pid),
