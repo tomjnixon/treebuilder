@@ -11,7 +11,7 @@ reply_json(StatusCode, Json, Req) ->
 read_json(Req) ->
     case cowboy_req:body(Req) of
         {ok, Body, Req2} ->
-            Json = jiffy:decode(Body),
+            Json = jiffy:decode(Body, [return_maps]),
             {ok, Json, Req2};
         Fail ->
             Fail
