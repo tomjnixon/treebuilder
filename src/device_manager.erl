@@ -4,6 +4,7 @@
 %% API.
 -export([start_link/0]).
 -export([load_hex/1]).
+-export([change_sketch/1]).
 
 %% gen_server.
 -export([init/1]).
@@ -26,6 +27,9 @@ start_link() ->
 load_hex(Hex) ->
     gen_server:call(?MODULE, {load_hex, Hex}).
 
+change_sketch(Num) ->
+    gen_server:call(?MODULE, {change_sketch, Num}).
+
 %% gen_server.
 
 init([]) ->
@@ -43,6 +47,13 @@ handle_call({load_hex, Hex}, _From, State) ->
     file:delete(HexFile),
     State2 = ensure_serial_connected(State1),
     {reply, ok, State2};
+
+handle_call({change_sketch, _Num}, _From, State=#state{serial_pid=none}) ->
+    {reply, not_connected, State};
+handle_call({change_sketch, Num}, _From, State=#state{serial_pid=Pid}) ->
+    srly:send(Pid, <<Num:8>>),
+    {reply, ok, State};
+
 handle_call(_Request, _From, State) ->
     {reply, ignored, State}.
 
