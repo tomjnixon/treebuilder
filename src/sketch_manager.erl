@@ -10,6 +10,7 @@
 -export([save/2]).
 -export([enable/1]).
 -export([disable/1]).
+-export([recompile/0]).
 
 %% XXX: remove
 -export([enabled_sketches/0]).
@@ -54,6 +55,9 @@ enable(Name) ->
 disable(Name) ->
     gen_server:call(?MODULE, {disable, Name}).
 
+recompile() ->
+    gen_server:call(?MODULE, recompile).
+
 
 install(Nodes) ->
     ok = mnesia:create_schema(Nodes),
@@ -67,7 +71,7 @@ install(Nodes) ->
 %% gen_server.
 
 init([]) ->
-    State=updated_code(#state{}, []),
+    State=updated_code(#state{}, true, []),
     {ok, State}.
 
 handle_call({get_sketch_state, Name}, _From, State) ->
@@ -77,6 +81,9 @@ handle_call({get_sketch_state, Name}, _From, State) ->
                  end
         end,
     {reply, mnesia:activity(transaction, F), State};
+
+handle_call(recompile, _From, State) ->
+    {reply, ok, updated_code(State, true, [])};
 
 handle_call({save, Name, CppCode}, _From, State) ->
     OldSketch = get_sketch_by_name_default(Name),
@@ -161,21 +168,34 @@ get_user_state(#treebuilder_sketch{
 
 try_sync_tree(State=#state{tree_synced=true}) -> State;
 try_sync_tree(State=#state{tree_synced=false, current_hex=Hex}) ->
-    io:format("writing hex ~p~n", [crypto:hash(sha256, Hex)]),
-    State#state{tree_synced=true}.
+    MessageParts = [{server,sketch_manager}, {hex, crypto:hash(md5, Hex)}],
+    try device_manager:load_hex(Hex) of
+        ok ->
+            error_logger:info_report([wrote_hex | MessageParts]),
+            State#state{tree_synced=true}
+    catch
+        % handle noproc so we don't spew large binaries in the usual cases.
+        exit:{noproc, _} ->
+            error_logger:error_report([error_writing_hex, {error, noproc} | MessageParts]),
+            State#state{tree_synced=false};
+        Error ->
+            error_logger:error_report([error_writing_hex, {error, Error} | MessageParts]),
+            State#state{tree_synced=false}
+    end.
 
-compile_v3(Sketches, State) ->
-    compile_v3(Sketches, State, []).
-compile_v3(Sketches, State, PreviousCompiles) ->
+compile_v3(Sketches, ForceRecompile, State) ->
+    compile_v3(Sketches, State, ForceRecompile, []).
+compile_v3(Sketches, State, ForceRecompile, PreviousCompiles) ->
     % Sketches sorted by code
     SortedSketches = lists:keysort(2, Sketches),
     
     % Append the result in the current state if it's been set.
     % [{[{Name, Cpp}], Hex}]
-    PreviousCompilesWState = case State of
-                                 #state{current_hex=null} -> PreviousCompiles;
-                                 #state{current_sketches=CurrentSketches,
-                                        current_hex=CurrentHex} ->
+    PreviousCompilesWState = case {ForceRecompile, State} of
+                                 {true, _} -> [];
+                                 {_, #state{current_hex=null}} -> PreviousCompiles;
+                                 {_, #state{current_sketches=CurrentSketches,
+                                        current_hex=CurrentHex}} ->
                                     [{CurrentSketches, CurrentHex} | PreviousCompiles]
                              end,
     % Extract just the code for each
@@ -195,21 +215,23 @@ compile_v3(Sketches, State, PreviousCompiles) ->
 
 try_compile_v3(State, Name, CppCode) ->
     Sketches = enabled_with_new(Name, CppCode),
-    compile_v3(Sketches, State).
+    compile_v3(Sketches, State, false).
 
 make_change(State, OldSketch, NewSketch) ->
     #treebuilder_sketch{name=OldName, cpp_code=OldCode, state=OldState} = OldSketch,
     #treebuilder_sketch{name=NewName, cpp_code=NewCode, state=NewState} = NewSketch,
     
-    CompileResults = case OldCode =:= NewCode of
-                         true ->
+    ForceRecompile=true,
+    
+    CompileResults = case ForceRecompile or (OldCode =/= NewCode) of
+                         false ->
                              case OldState of
                                  error ->
                                      {ErrType, ErrString} = OldSketch#treebuilder_sketch.errors,
                                      {error, ErrType, ErrString};
                                  _ -> {ok, OldSketch#treebuilder_sketch.js_code, []}
                              end;
-                         false ->
+                         true ->
                              case js_compiler:compile_js(NewCode) of
                                  {null, JsErrors} ->
                                      {error, js_error, JsErrors};
@@ -251,16 +273,16 @@ make_change(State, OldSketch, NewSketch) ->
                            _ -> []
                        end,
     
-    NewAppState = updated_code(State, PreviousCompiles),
+    NewAppState = updated_code(State, false, PreviousCompiles),
     
     {NewWithResults, NewAppState}.
 
-updated_code(State=#state{current_hex=CurrentHex, tree_synced=WasSynced}, PreviousCompiles) ->
+updated_code(State=#state{current_hex=CurrentHex, tree_synced=WasSynced}, ForceRecompile, PreviousCompiles) ->
     Sketches = enabled_sketches(),
-    case compile_v3(Sketches, State, PreviousCompiles) of
+    case compile_v3(Sketches, State, ForceRecompile, PreviousCompiles) of
         {error, Errors} ->
             error_logger:error_report(["failed to compile", Errors]),
-            exit(failed_to_compile);
+            erlang:error(failed_to_compile);
         {ok, CompiledSketches, CompiledHex} ->
             Synced = WasSynced and (CompiledHex =:= CurrentHex),
             try_sync_tree(State#state{current_sketches=CompiledSketches,
