@@ -48,7 +48,7 @@ void loop() {
         next_time += 60;
         
         for (int i = 0; i < num_leds; i++)
-            setPixel(i, makeColor(((offset + i) % num_leds * 359) / num_leds, 100, 50));
+            setPixel(i, makeColor(((offset + i) % num_leds * 359) / num_leds, 100, 20));
         show();
         
         offset++;
