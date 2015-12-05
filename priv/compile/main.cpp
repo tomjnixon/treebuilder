@@ -7,7 +7,7 @@ namespace sketches {
     Sketch *sketches;
     int num_sketches;
 
-    const uint32_t sketch_run_time = 1000 * 5;
+    const uint32_t sketch_run_time = 1000 * 60;
     uint32_t next_time;
     int current_sketch;
 
