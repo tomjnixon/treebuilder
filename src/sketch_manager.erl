@@ -160,10 +160,14 @@ get_user_state(#treebuilder_sketch{
                   state=State,
                   errors=Errors,
                   js_code=JsCode}) ->
+    JsonError = case Errors of
+                    null -> null;
+                    {_ErrType, ErrString} -> ErrString
+                end,
     [{name, Name},
      {cpp_code, CppCode},
      {state, State},
-     {errors, Errors},
+     {errors, JsonError},
      {js_code, JsCode}].
 
 try_sync_tree(State=#state{tree_synced=true}) -> State;
