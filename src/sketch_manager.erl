@@ -183,7 +183,7 @@ try_sync_tree(State=#state{tree_synced=false, current_hex=Hex}) ->
             State#state{tree_synced=false}
     end.
 
-compile_v3(Sketches, ForceRecompile, State) ->
+compile_v3(Sketches, State, ForceRecompile) ->
     compile_v3(Sketches, State, ForceRecompile, []).
 compile_v3(Sketches, State, ForceRecompile, PreviousCompiles) ->
     % Sketches sorted by code
