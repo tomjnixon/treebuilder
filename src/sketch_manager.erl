@@ -99,7 +99,7 @@ handle_call({enable, Name}, _From, State) ->
     
     case OldSketch#treebuilder_sketch.state of
         error ->
-            {reply, {error, "cannot enable a sketch with errors"}, State};
+            {reply, {error, <<"cannot enable a sketch with errors">>}, State};
         _ ->
             NewSketch = OldSketch#treebuilder_sketch{state=enabled},
             
