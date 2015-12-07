@@ -1,3 +1,4 @@
+var RBS = ReactBootstrap;
 
 function compile_cpp(cpp_code, callback) {
     var xhr = new XMLHttpRequest();
@@ -6,11 +7,58 @@ function compile_cpp(cpp_code, callback) {
     xhr.onload = function() {
         if (xhr.status === 200) {
             var json = JSON.parse(xhr.responseText);
-            callback(json.js_code, json.errors);
+            callback(json.cpp_code, json.js_code, json.errors);
         }
     };
     xhr.send(JSON.stringify({
         cpp_code: cpp_code
+    }));
+}
+
+function save(name, cpp_code, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/sketches/save');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            callback(json[0], json[1]);
+        }
+    };
+    xhr.send(JSON.stringify({
+        cpp_code: cpp_code,
+        name: name
+    }));
+}
+
+
+function enable(name, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/sketches/enable');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            callback(json[0], json[1]);
+        }
+    };
+    xhr.send(JSON.stringify({
+        name: name
+    }));
+}
+
+function disable(name, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/sketches/disable');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            callback(json[0], json[1]);
+        }
+    };
+    xhr.send(JSON.stringify({
+        name: name
     }));
 }
 
@@ -40,7 +88,13 @@ function load_module(src) {
     var leds_positions = new Int8Array(Module.HEAP8.buffer, leds_positions_ptr,
             leds_positions_stride * num_leds);
     
-    module._c_setup();
+    try {
+        module._c_setup();
+        module._c_loop();
+    } catch (error) {
+        return {error: "Failed to call setup or loop."};
+        console.log(error);
+    }
     
     return {
         dispose: function() {
@@ -75,12 +129,13 @@ function load_module(src) {
 var Preview = React.createClass({
     componentDidMount: function() {
         // set the scene size
-        var WIDTH = 400;
-        var HEIGHT = 300;
+        var WIDTH = this._container.clientWidth;
+        var HEIGHT = this._container.clientHeight;
+        console.log(WIDTH);
+        console.log(HEIGHT);
 
         // set some camera attributes
         var VIEW_ANGLE = 45;
-        var ASPECT = WIDTH / HEIGHT;
         var NEAR = 0.1;
         var FAR = 10000;
 
@@ -180,7 +235,7 @@ var Preview = React.createClass({
     },
     
     render: function() {
-        return (<div ref={(function(container) {
+        return (<div className="previewcontainer" ref={(function(container) {
             this._container = container;
         }).bind(this)} />);
     }
@@ -226,12 +281,6 @@ var EditorPreview = React.createClass({
             ? <Preview module={this.state.module} />
             : <div>{this.state.state}</div>);
         
-        var cm_options = {
-            lineNumbers: true,
-            matchBrackets: true,
-            mode: "text/x-c++src",
-        };
-        
         var errors;
         if (this.state.errors == null)
             errors = <div/>;
@@ -263,10 +312,203 @@ function get_test_mod(callback) {
     xhr.send();
 }
 
+var EditWindow = React.createClass({
+    getDefaultProps: function() {
+        return {initial_app_state: {}};;
+    },
+    getInitialState: function() {
+        var state = {
+            name: null,
+            cpp_code: null,
+            editor_cpp_code: "",
+            preview_cpp_code: null,
+            state: "unsaved",
+            errors: null,
+            module: null,
+            command_running: false,
+        };
+        _.assign(state, this.props.initial_app_state);
+        if (state.cpp_code != null)
+            state.editor_cpp_code = state.cpp_code;
+        if (state.js_code != null)
+            state.preview_cpp_code = state.cpp_code;
+        
+        // state.errors = "";
+        // for (var i = 0; i < 50; i++)
+        //     state.errors += "foo\n";
+        return state;
+    },
+    
+    update_cpp_code: function(new_cpp_code) {
+        this.setState({
+            editor_cpp_code: new_cpp_code
+        });
+    },
+    
+    update_preview: function(cpp_code, js_code, errors) {
+        var module = js_code != null ? load_module(js_code) : null;
+        if (module != null && "error" in module) {
+            errors = module.error;
+            module = null;
+        }
+        this.setState({
+            errors: errors,
+            module: module,
+            preview_cpp_code: cpp_code,
+        });
+    },
+    
+    on_preview: function() {
+        compile_cpp(this.state.editor_cpp_code,
+                function(cpp_code, js_code, errors) {
+                    this.update_preview(cpp_code, js_code, errors);
+                    this.setState({command_running: false});
+                }.bind(this));
+        this.setState({
+            command_running: true
+        });
+    },
+    
+    on_save: function() {
+        var name = this.state.name
+        while (name == null) {
+            name = prompt("Give it a name");
+            
+            if (name == null)
+                return;
+            if (name == "")
+                continue;
+        }
+        this.setState({name: name});
+        
+        save(name, this.state.editor_cpp_code, function(status, new_state) {
+            this.update_preview(new_state.cpp_code, new_state.js_code, new_state.errors);
+            this.setState({
+                state: new_state.state,
+                cpp_code: new_state.cpp_code,
+                command_running: false,
+            });
+        }.bind(this));
+        
+        this.setState({command_running: true});
+    },
+    
+    on_enable: function() {
+        enable(this.state.name, function(status, new_state) {
+            this.update_preview(new_state.cpp_code, new_state.js_code, new_state.errors);
+            this.setState({
+                state: new_state.state,
+                cpp_code: new_state.cpp_code,
+                command_running: false,
+            });
+        }.bind(this));
+        
+        this.setState({command_running: true});
+    },
+    
+    on_disable: function() {
+        disable(this.state.name, function(status, new_state) {
+            console.log(new_state);
+            this.update_preview(new_state.cpp_code, new_state.js_code, new_state.errors);
+            this.setState({
+                state: new_state.state,
+                cpp_code: new_state.cpp_code,
+                command_running: false,
+            });
+        }.bind(this));
+        
+        this.setState({command_running: true});
+    },
+    
+    render: function() {
+        var cm_options = {
+            lineNumbers: true,
+            matchBrackets: true,
+            mode: "text/x-c++src",
+        };
+        
+        var code = <ReactCodeMirror value={this.state.editor_cpp_code}
+                     onChange={this.update_cpp_code}
+                    options={cm_options} />;
+        
+        var errors;
+        if (this.state.errors == null)
+            errors = <div/>;
+        else {
+            var html = {__html: ansi_up.ansi_to_html(this.state.errors)};
+            errors = <pre className="errors" dangerouslySetInnerHTML={html} />;
+        }
+        
+        var unsaved = this.state.state == "unsaved";
+        var can_preview = this.state.preview_cpp_code != this.state.editor_cpp_code;
+        var can_save = this.state.cpp_code != this.state.editor_cpp_code;
+        
+        var enable_disabled = (this.state.command_running
+                                || !_.contains(["compiles", "enabled"], this.state.state));
+        var enable_text = this.state.state == "enabled" ? "Disable" : "Enable";
+        var enable_callback = _.get({compiles: this.on_enable, enabled: this.on_disable},
+                                    this.state.state);
+        var enable_button = (
+                <RBS.Button
+                    disabled={enable_disabled}
+                    onClick={enable_callback}
+                    >{enable_text}</RBS.Button>
+                );
+        
+        var buttons = (
+                <div>
+                    <RBS.Button
+                            disabled={this.state.command_running || !can_preview}
+                            onClick={can_preview ? this.on_preview : null} >
+                        Preview
+                    </RBS.Button>
+                    <RBS.Button
+                            disabled={!can_save}
+                            onClick={can_save ? this.on_save : null} >
+                        Save
+                    </RBS.Button>
+                    {enable_button}
+                </div>
+                );
+        
+        var preview = (this.state.module != null
+            ? <Preview module={this.state.module} />
+            : null);
+        
+        return (
+                    <div className="editor">
+                        <div className="leftcol">
+                            <div className="preview">
+                                {preview}
+                            </div>
+                            {errors}
+                        </div>
+                        <div className="rightcol">
+                            <div className="buttons">
+                                {buttons}
+                            </div>
+                            <div className="code">
+                                {code}
+                            </div>
+                        </div>
+                    </div>
+                );
+    }
+});
+
+var App = React.createClass({
+    render: function() {
+        return (<div className="top">
+                    <header>treebuilder</header>
+                    <EditWindow />
+                </div>);
+    }
+});
+
 function test() {
     get_test_mod(function (cpp_code) {
         ReactDOM.render(
-                <EditorPreview initial_cpp_code={cpp_code} />,
+                <EditorPreview initial_app_state={{editor_cpp_code: cpp_code}} />,
                 document.getElementById('container')
                 );
     });
@@ -274,6 +516,14 @@ function test() {
 
 var Module = {
     onRuntimeInitialized: function() {
-        test();
+        // test();
+        // ReactDOM.render(<App/>, document.getElementById('container'));
+        get_test_mod(function (cpp_code) {
+            var element = (<div className="top">
+                            <header>treebuilder</header>
+                            <EditWindow initial_app_state={{editor_cpp_code: cpp_code}} />
+                            </div>);
+            ReactDOM.render(element, document.getElementById('container'));
+        });
     }
 };

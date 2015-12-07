@@ -1,1 +1,66 @@
-.CodeMirror { height: auto; border: 1px solid #ddd; }
+.CodeMirror {
+    height: auto;
+    border: 1px solid #ddd;
+    font-size: 12px;
+}
+
+html, body, #container, .top {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+}
+
+header {
+    display: block;
+    height:40px;
+    font-size: 18px;
+    padding: 8px;
+}
+
+.editor {
+    height:100%;
+    margin-top: -40px;
+    padding-top: 40px;
+    display: flex;
+    flex-flow: row;
+}
+
+.leftcol {
+    display:flex;
+    flex-flow: column;
+    flex: 3;
+}
+
+.preview {
+    // background-color: red;
+    flex: 1;
+    display:flex;
+    flex-flow: column;
+}
+
+.previewcontainer {
+    flex: 1;
+}
+
+.errors {
+    // background-color: blue;
+    height: 200px;
+    overflow-y: scroll;
+}
+
+.rightcol {
+    display:flex;
+    flex-flow: column;
+    flex: 4;
+}
+
+.buttons {
+    // background-color: purple;
+}
+
+.code {
+    // background-color: green;
+    flex: 5;
+    overflow-y: scroll;
+}
+
