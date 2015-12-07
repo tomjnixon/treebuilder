@@ -90,6 +90,21 @@ function disable(name, callback) {
     }));
 }
 
+function show_sketch(name, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/sketches/show_sketch');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            callback(json[0], json[1]);
+        }
+    };
+    xhr.send(JSON.stringify({
+        name: name
+    }));
+}
+
 function load_lib(src) {
     // from the top of loadDynamicLibrary
     var libModule = eval(src)(
@@ -501,11 +516,21 @@ var ListWindow = React.createClass({
         }.bind(this));
         this.setState({busy: true});
     },
+    show_sketch: function(name) {
+        console.log("show " + name);
+        show_sketch(name, function(status) {
+        });
+    },
     render_sketch: function(sketch) {
         return (
             <RBS.Panel header={<h3>{sketch.name}</h3>} >
                 <RBS.Button onClick={this.props.on_edit_sketch.bind(this, sketch.name)}>
                     Edit
+                </RBS.Button>
+                <RBS.Button
+                        disabled={sketch.state != "enabled"}
+                        onClick={this.show_sketch.bind(this, sketch.name)}>
+                    Show on Tree
                 </RBS.Button>
             </RBS.Panel>
         );
