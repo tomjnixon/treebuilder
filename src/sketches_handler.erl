@@ -52,6 +52,15 @@ handle(Req, [<<"disable">>], State1) ->
               end
       end);
 
+handle(Req, [<<"show_sketch">>], State1) ->
+    cowboy_utils:json_req_response(Req, State1,
+      fun (#{<<"name">> := Name}, State) ->
+              case sketch_manager:show_sketch(Name) of
+                  ok -> {ok, [ok], State};
+                  error -> {ok, [error], State}
+              end
+      end);
+
 handle(Req, _, State) ->
     {ok, Req2} = cowboy_req:reply(404, "Not Found", Req),
     {ok, Req2, State}.
