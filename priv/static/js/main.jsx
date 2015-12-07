@@ -241,65 +241,6 @@ var Preview = React.createClass({
     }
 });
 
-var EditorPreview = React.createClass({
-    getInitialState: function() {
-        return {
-            cpp_code: this.props.initial_cpp_code,
-            state: "initial",
-            errors: null,
-            module: null,
-        };
-    },
-    compile: function() {
-        if (this.state.state == "compiling")
-            return;
-        
-        if (this.state.module != null) {
-            this.state.module.dispose();
-            this.setState({module: null});
-        }
-        
-        compile_cpp(this.state.cpp_code, (function(js_code, errors) {
-            if (js_code === null) {
-                this.setState({state: "error"});
-            } else {
-                this.setState({
-                    state: "compiled",
-                    module: load_module(js_code),
-                });
-            }
-            this.setState({errors: errors});
-        }).bind(this));
-        
-        this.setState({state: "compiling"});
-    },
-    update_cpp_code: function(new_cpp_code) {
-        this.setState({cpp_code: new_cpp_code});
-    },
-    render: function() {
-        var preview = (this.state.state == "compiled"
-            ? <Preview module={this.state.module} />
-            : <div>{this.state.state}</div>);
-        
-        var errors;
-        if (this.state.errors == null)
-            errors = <div/>;
-        else {
-            var html = {__html: ansi_up.ansi_to_html(this.state.errors)};
-            errors = <pre dangerouslySetInnerHTML={html} />;
-        }
-        
-        return (<div>
-                    {preview}
-                    <button onClick={this.compile} >Preview</button>
-                    <ReactCodeMirror value={this.state.cpp_code} onChange={this.update_cpp_code} options={cm_options} />
-                    {errors}
-                </div>
-                );
-    },
-});
-
-
 
 function get_test_mod(callback) {
     var xhr = new XMLHttpRequest();
@@ -505,19 +446,8 @@ var App = React.createClass({
     }
 });
 
-function test() {
-    get_test_mod(function (cpp_code) {
-        ReactDOM.render(
-                <EditorPreview initial_app_state={{editor_cpp_code: cpp_code}} />,
-                document.getElementById('container')
-                );
-    });
-}
-
 var Module = {
     onRuntimeInitialized: function() {
-        // test();
-        // ReactDOM.render(<App/>, document.getElementById('container'));
         get_test_mod(function (cpp_code) {
             var element = (<div className="top">
                             <header>treebuilder</header>
