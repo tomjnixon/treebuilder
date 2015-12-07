@@ -11,6 +11,12 @@
 init(_, Req, _Opts) ->
     {ok, Req, #state{}}.
 
+handle(Req, [<<"list_sketches">>], State) ->
+    Sketches = sketch_manager:list_sketches(),
+    JsonSketches = [{Sketch} || Sketch <- Sketches],
+    {ok, Req2} = cowboy_utils:reply_json(200, JsonSketches, Req),
+    {ok, Req2, State};
+
 handle(Req, [<<"get_state">>], State1) ->
     cowboy_utils:json_req_response(Req, State1,
       fun (#{<<"name">> := Name}, State) ->
