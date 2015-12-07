@@ -11,6 +11,7 @@
 -export([save/2]).
 -export([enable/1]).
 -export([disable/1]).
+-export([show_sketch/1]).
 -export([recompile/0]).
 
 %% gen_server.
@@ -58,6 +59,9 @@ disable(Name) ->
 
 recompile() ->
     gen_server:call(?MODULE, recompile).
+
+show_sketch(Name) ->
+    gen_server:call(?MODULE, {show_sketch, Name}).
 
 
 install(Nodes) ->
@@ -125,6 +129,27 @@ handle_call({disable, Name}, _From, State) ->
     
     {ResultSketch, NewState} = make_change(State, OldSketch, NewSketch),
     {reply, {ok, get_user_state(ResultSketch)}, NewState};
+
+handle_call({show_sketch, Name}, _From, State=#state{current_sketches=CurentSketches}) ->
+    {Names, _CppCodes} = lists:unzip(CurentSketches),
+    case index_of(Name, Names) of
+        not_found ->
+            {reply, error, State};
+        Idx ->
+            MessageParts = [{server, sketch_manager}, {sketch_idx, Idx}],
+            try device_manager:change_sketch(Idx - 1) of
+                ok ->
+                    {reply, ok, State}
+            catch
+                % handle noproc so we don't spew large binaries in the usual cases.
+                exit:{noproc, _} ->
+                    error_logger:error_report([error_switching_sketch, {error, noproc} | MessageParts]),
+                    {reply, error, State};
+                Error ->
+                    error_logger:error_report([error_switching_sketch, {error, Error} | MessageParts]),
+                    {reply, error, State}
+            end
+    end;
 
 handle_call(get_state, _From, State) ->
     {reply, State, State};
@@ -304,3 +329,9 @@ updated_code(State=#state{current_hex=CurrentHex, tree_synced=WasSynced}, ForceR
                                       current_hex=CompiledHex,
                                       tree_synced=Synced})
     end.
+
+% index of Item in List
+index_of(Item, List) -> index_of(Item, List, 1).
+index_of(_, [], _)  -> not_found;
+index_of(Item, [Item|_], Index) -> Index;
+index_of(Item, [_|Tl], Index) -> index_of(Item, Tl, Index+1).
