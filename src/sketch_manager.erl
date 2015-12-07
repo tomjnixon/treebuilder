@@ -13,9 +13,6 @@
 -export([disable/1]).
 -export([recompile/0]).
 
-%% XXX: remove
--export([enabled_sketches/0]).
-
 %% gen_server.
 -export([init/1]).
 -export([handle_call/3]).
