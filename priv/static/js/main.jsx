@@ -15,6 +15,34 @@ function compile_cpp(cpp_code, callback) {
     }));
 }
 
+function list_sketches(callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/sketches/list_sketches');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            callback(json);
+        }
+    };
+    xhr.send();
+}
+
+function get_state(name, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/sketches/get_state');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            callback(json[0], json[1]);
+        }
+    };
+    xhr.send(JSON.stringify({
+        name: name
+    }));
+}
+
 function save(name, cpp_code, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '/sketches/save');
@@ -280,6 +308,10 @@ var EditWindow = React.createClass({
         return state;
     },
     
+    componentDidMount: function() {
+        this.update_preview(this.state.preview_cpp_code, this.state.js_code, this.state.errors);
+    },
+    
     update_cpp_code: function(new_cpp_code) {
         this.setState({
             editor_cpp_code: new_cpp_code
@@ -361,6 +393,15 @@ var EditWindow = React.createClass({
         this.setState({command_running: true});
     },
     
+    on_done: function() {
+        if (this.state.editor_cpp_code != this.state.cpp_code) {
+            if (!confirm("Exit without saving? Pressing OK will discard any changes."))
+                return;
+        }
+        
+        this.props.on_done_editing();
+    },
+    
     render: function() {
         var cm_options = {
             lineNumbers: true,
@@ -408,6 +449,10 @@ var EditWindow = React.createClass({
                             onClick={can_save ? this.on_save : null} >
                         Save
                     </RBS.Button>
+                    <RBS.Button
+                            onClick={this.on_done} >
+                        Done
+                    </RBS.Button>
                     {enable_button}
                 </div>
                 );
@@ -437,23 +482,98 @@ var EditWindow = React.createClass({
     }
 });
 
-var App = React.createClass({
+var ListWindow = React.createClass({
+    getInitialState: function() {
+        return {
+            sketches: [],
+            busy: false,
+        };
+    },
+    componentDidMount: function() {
+        this.refresh();
+    },
+    refresh: function() {
+        list_sketches(function(sketches) {
+            this.setState({
+                sketches: sketches,
+                busy: true
+            });
+        }.bind(this));
+        this.setState({busy: true});
+    },
+    render_sketch: function(sketch) {
+        return (
+            <RBS.Panel header={<h3>{sketch.name}</h3>} >
+                <RBS.Button onClick={this.props.on_edit_sketch.bind(this, sketch.name)}>
+                    Edit
+                </RBS.Button>
+            </RBS.Panel>
+        );
+    },
     render: function() {
+        return (
+            <div>
+                <RBS.Button onClick={this.props.on_new_sketch}>
+                    New
+                </RBS.Button>
+                <RBS.Button onClick={this.refresh}>
+                    Refresh
+                </RBS.Button>
+                {this.state.sketches.map(this.render_sketch)}
+            </div>
+        );
+    }
+});
+
+var App = React.createClass({
+    getInitialState: function() {
+        return {
+            editing: null
+        };
+    },
+    edit_sketch: function(name) {
+        get_state(name, function(status, state) {
+            this.setState({editing: state});
+        }.bind(this));
+    },
+    new_sketch: function() {
+        get_test_mod(function (cpp_code) {
+            this.setState({editing: {editor_cpp_code: cpp_code}});
+        }.bind(this));
+    },
+    done_editing: function() {
+        get_test_mod(function (cpp_code) {
+            this.setState({editing: null});
+        }.bind(this));
+    },
+    render: function() {
+        var panel;
+        if (this.state.editing == null)
+            panel = <ListWindow
+                        on_edit_sketch={this.edit_sketch}
+                        on_new_sketch={this.new_sketch} />;
+        else
+            panel = <EditWindow
+                        initial_app_state={this.state.editing}
+                        on_done_editing={this.done_editing} />;
+        
         return (<div className="top">
                     <header>treebuilder</header>
-                    <EditWindow />
+                    {panel}
                 </div>);
     }
 });
 
 var Module = {
     onRuntimeInitialized: function() {
-        get_test_mod(function (cpp_code) {
-            var element = (<div className="top">
-                            <header>treebuilder</header>
-                            <EditWindow initial_app_state={{editor_cpp_code: cpp_code}} />
-                            </div>);
-            ReactDOM.render(element, document.getElementById('container'));
-        });
+        
+        ReactDOM.render(<App/>, document.getElementById('container'));
+        // get_test_mod(function (cpp_code) {
+        //     var element = (<div className="top">
+        //                     <header>treebuilder</header>
+        //                     <EditWindow initial_app_state={{editor_cpp_code: cpp_code}} />
+        //                     </div>);
+        //     ReactDOM.render(element, document.getElementById('container'));
+        // });
     }
 };
