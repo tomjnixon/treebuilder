@@ -12,6 +12,7 @@
 -export([enable/1]).
 -export([disable/1]).
 -export([show_sketch/1]).
+-export([delete/1]).
 -export([recompile/0]).
 
 %% gen_server.
@@ -63,6 +64,9 @@ recompile() ->
 show_sketch(Name) ->
     gen_server:call(?MODULE, {show_sketch, Name}).
 
+delete(Name) ->
+    gen_server:call(?MODULE, {delete, Name}).
+
 
 install(Nodes) ->
     ok = mnesia:create_schema(Nodes),
@@ -71,6 +75,11 @@ install(Nodes) ->
                         [{attributes, record_info(fields, treebuilder_sketch)},
                          {index, [#treebuilder_sketch.state]},
                          {disc_copies, Nodes}]),
+    mnesia:create_table(treebuilder_sketch_deleted,
+                        [{attributes, record_info(fields, treebuilder_sketch)},
+                         {index, [#treebuilder_sketch.state]},
+                         {disc_copies, Nodes},
+                         {type, bag}]),
     rpc:multicall(Nodes, application, stop, [mnesia]).
 
 %% gen_server.
@@ -153,6 +162,21 @@ handle_call({show_sketch, Name}, _From, State=#state{current_sketches=CurentSket
                     {reply, error, State}
             end
     end;
+
+handle_call({delete, Name}, _From, State) ->
+    F = fun() ->
+                case mnesia:read(treebuilder_sketch, Name) of
+                    [] -> error;
+                    [Sketch] ->
+                        mnesia:delete_object(Sketch),
+                        DeletedSketch = erlang:setelement(1, Sketch, treebuilder_sketch_deleted),
+                        mnesia:write(DeletedSketch),
+                        ok
+                end
+        end,
+    Status = mnesia:activity(transaction, F),
+    NewAppState = updated_code(State, false, []),
+    {reply, Status, NewAppState};
 
 handle_call(get_state, _From, State) ->
     {reply, State, State};
