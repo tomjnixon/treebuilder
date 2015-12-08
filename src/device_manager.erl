@@ -25,10 +25,12 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 load_hex(Hex) ->
-    gen_server:call(?MODULE, {load_hex, Hex}, 20000).
+    {ok, Node} = application:get_env(treebuilder, device_manager_node),
+    gen_server:call({?MODULE, Node}, {load_hex, Hex}, 20000).
 
 change_sketch(Num) ->
-    gen_server:call(?MODULE, {change_sketch, Num}).
+    {ok, Node} = application:get_env(treebuilder, device_manager_node),
+    gen_server:call({?MODULE, Node}, {change_sketch, Num}).
 
 %% gen_server.
 
