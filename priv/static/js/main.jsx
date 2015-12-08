@@ -90,6 +90,21 @@ function disable(name, callback) {
     }));
 }
 
+function delete_sketch(name, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/sketches/delete');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            callback(json[0]);
+        }
+    };
+    xhr.send(JSON.stringify({
+        name: name
+    }));
+}
+
 function show_sketch(name, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '/sketches/show_sketch');
@@ -417,6 +432,15 @@ var EditWindow = React.createClass({
         this.props.on_done_editing();
     },
     
+    on_delete: function() {
+        if (!confirm("Really delete this sketch?"))
+            return;
+        
+        delete_sketch(this.state.name, function(status) {
+            this.props.on_done_editing();
+        }.bind(this));
+    },
+    
     render: function() {
         var cm_options = {
             lineNumbers: true,
@@ -467,6 +491,11 @@ var EditWindow = React.createClass({
                     <RBS.Button
                             onClick={this.on_done} >
                         Done
+                    </RBS.Button>
+                    <RBS.Button
+                            disabled={unsaved}
+                            onClick={this.on_delete} >
+                        Delete
                     </RBS.Button>
                     {enable_button}
                 </div>
