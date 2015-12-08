@@ -787,7 +787,7 @@
 			document.removeEventListener( 'mousemove', onMouseMove, false );
 			document.removeEventListener( 'mouseup', onMouseUp, false );
 
-			window.removeEventListener( 'keydown', onKeyDown, false );
+			this.domElement.removeEventListener( 'keydown', onKeyDown, false );
 
 		}
 
@@ -801,7 +801,7 @@
 		this.domElement.addEventListener( 'touchend', touchend, false );
 		this.domElement.addEventListener( 'touchmove', touchmove, false );
 
-		window.addEventListener( 'keydown', onKeyDown, false );
+		this.domElement.addEventListener( 'keydown', onKeyDown, false );
 
 		// force an update at start
 		this.update();
