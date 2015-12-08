@@ -37,6 +37,7 @@ init([]) ->
 handle_call({compile_js, CppCode}, _From, State) ->
     CompileDir = filename:join(code:priv_dir(treebuilder), "compile"),
     JsCompileDir = filename:join(code:priv_dir(treebuilder), "js_compile"),
+    PatternCommon = filename:join(CompileDir, "pattern_common.cpp"),
     Wrapper = filename:join(JsCompileDir, "js_wrap.cpp"),
     
     InFile = lib:nonl(os:cmd("mktemp /tmp/XXXXXX.cpp")),
@@ -52,6 +53,7 @@ handle_call({compile_js, CppCode}, _From, State) ->
            "-I", CompileDir,
            "-o", OutFile,
            Wrapper,
+           PatternCommon,
            InFile
           ],
     
