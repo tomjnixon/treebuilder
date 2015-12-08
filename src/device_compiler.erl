@@ -23,7 +23,7 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 compile_for_device(CppCodes) ->
-    gen_server:call(?MODULE, {compile_for_device, CppCodes}).
+    gen_server:call(?MODULE, {compile_for_device, CppCodes}, 30000).
 
 %% gen_server.
 

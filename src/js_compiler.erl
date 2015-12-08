@@ -27,7 +27,7 @@ stop(Ref) ->
     gen_server:stop(Ref).
 
 compile_js(CppCode) -> 
-    gen_server:call(?MODULE, {compile_js, CppCode}).
+    gen_server:call(?MODULE, {compile_js, CppCode}, 30000).
 
 %% gen_server.
 

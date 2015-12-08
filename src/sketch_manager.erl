@@ -45,27 +45,27 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 list_sketches() ->
-    gen_server:call(?MODULE, list_sketches).
+    gen_server:call(?MODULE, list_sketches, infinity).
 
 get_sketch_state(Name) ->
-    gen_server:call(?MODULE, {get_sketch_state, Name}).
+    gen_server:call(?MODULE, {get_sketch_state, Name}, infinity).
 save(Name, CppCode) ->
-    gen_server:call(?MODULE, {save, Name, CppCode}).
+    gen_server:call(?MODULE, {save, Name, CppCode}, infinity).
 
 enable(Name) ->
-    gen_server:call(?MODULE, {enable, Name}).
+    gen_server:call(?MODULE, {enable, Name}, infinity).
 
 disable(Name) ->
-    gen_server:call(?MODULE, {disable, Name}).
+    gen_server:call(?MODULE, {disable, Name}, infinity).
 
 recompile() ->
-    gen_server:call(?MODULE, recompile).
+    gen_server:call(?MODULE, recompile, infinity).
 
 show_sketch(Name) ->
-    gen_server:call(?MODULE, {show_sketch, Name}).
+    gen_server:call(?MODULE, {show_sketch, Name}, infinity).
 
 delete(Name) ->
-    gen_server:call(?MODULE, {delete, Name}).
+    gen_server:call(?MODULE, {delete, Name}, infinity).
 
 
 install(Nodes) ->
