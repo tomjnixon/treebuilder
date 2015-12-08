@@ -145,6 +145,9 @@ handle_call({show_sketch, Name}, _From, State=#state{current_sketches=CurentSket
                 exit:{noproc, _} ->
                     error_logger:error_report([error_switching_sketch, {error, noproc} | MessageParts]),
                     {reply, error, State};
+                exit:{{nodedown, Node}, _} ->
+                    error_logger:error_report([error_switching_sketch, {error, {nodedown, Node}} | MessageParts]),
+                    {reply, error, State};
                 Error ->
                     error_logger:error_report([error_switching_sketch, {error, Error} | MessageParts]),
                     {reply, error, State}
@@ -218,6 +221,9 @@ try_sync_tree(State=#state{tree_synced=false, current_hex=Hex}) ->
         exit:{noproc, _} ->
             error_logger:error_report([error_writing_hex, {error, noproc} | MessageParts]),
             State#state{tree_synced=false};
+        exit:{{nodedown, Node}, _} ->
+            error_logger:error_report([error_switching_sketch, {error, {nodedown, Node}} | MessageParts]),
+            {reply, error, State};
         Error ->
             error_logger:error_report([error_writing_hex, {error, Error} | MessageParts]),
             State#state{tree_synced=false}
