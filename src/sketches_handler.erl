@@ -34,6 +34,15 @@ handle(Req, [<<"save">>], State1) ->
               {ok, [ok, {Sketch}], State}
       end);
 
+handle(Req, [<<"rename">>], State1) ->
+    cowboy_utils:json_req_response(Req, State1,
+      fun (#{<<"old_name">> := OldName, <<"new_name">> := NewName}, State) ->
+            case sketch_manager:rename(OldName, NewName) of
+                {ok, Sketch} -> {ok, [ok, {Sketch}], State};
+                {error, Message} -> {ok, [error, Message], State}
+            end
+      end);
+
 handle(Req, [<<"enable">>], State1) ->
     cowboy_utils:json_req_response(Req, State1,
       fun (#{<<"name">> := Name}, State) ->
