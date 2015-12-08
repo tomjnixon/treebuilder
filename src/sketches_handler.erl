@@ -52,6 +52,15 @@ handle(Req, [<<"disable">>], State1) ->
               end
       end);
 
+handle(Req, [<<"delete">>], State1) ->
+    cowboy_utils:json_req_response(Req, State1,
+      fun (#{<<"name">> := Name}, State) ->
+              case sketch_manager:delete(Name) of
+                  ok -> {ok, [ok], State};
+                  error -> {ok, [error], State}
+              end
+      end);
+
 handle(Req, [<<"show_sketch">>], State1) ->
     cowboy_utils:json_req_response(Req, State1,
       fun (#{<<"name">> := Name}, State) ->
