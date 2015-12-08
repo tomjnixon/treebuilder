@@ -59,6 +59,22 @@ function save(name, cpp_code, callback) {
     }));
 }
 
+function rename(old_name, new_name, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/sketches/rename');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            callback(json[0], json[1]);
+        }
+    };
+    xhr.send(JSON.stringify({
+        old_name: old_name,
+        new_name: new_name,
+    }));
+}
+
 
 function enable(name, callback) {
     var xhr = new XMLHttpRequest();
@@ -385,6 +401,28 @@ var EditWindow = React.createClass({
             this.update_preview(new_state.cpp_code, new_state.js_code, new_state.errors);
             this.setState({
                 state: new_state.state,
+                name: new_state.name,
+                cpp_code: new_state.cpp_code,
+                command_running: false,
+            });
+        }.bind(this));
+        
+        this.setState({command_running: true});
+    },
+    
+    on_rename: function() {
+        var new_name = "";
+        while (new_name == "") {
+            new_name = prompt("New Name");
+            
+            if (new_name == null)
+                return;
+        }
+        
+        rename(this.state.name, new_name, function(status, new_state) {
+            this.update_preview(new_state.cpp_code, new_state.js_code, new_state.errors);
+            this.setState({
+                state: new_state.state,
                 cpp_code: new_state.cpp_code,
                 command_running: false,
             });
@@ -493,6 +531,11 @@ var EditWindow = React.createClass({
                             disabled={unsaved}
                             onClick={this.on_delete} >
                         Delete
+                    </RBS.Button>
+                    <RBS.Button
+                            disabled={unsaved}
+                            onClick={this.on_rename} >
+                        Rename
                     </RBS.Button>
                     {enable_button}
                 </div>
