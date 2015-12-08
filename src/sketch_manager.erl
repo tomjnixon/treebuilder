@@ -112,7 +112,14 @@ handle_call(recompile, _From, State) ->
 handle_call({save, Name, CppCode}, _From, State) ->
     OldSketch = get_sketch_by_name_default(Name),
     
-    NewSketch = OldSketch#treebuilder_sketch{cpp_code=CppCode},
+    % update the code, and the versions if there was already code.
+    NewSketch = case OldSketch of
+                    #treebuilder_sketch{cpp_code=none} ->
+                        OldSketch#treebuilder_sketch{cpp_code=CppCode};
+                    #treebuilder_sketch{cpp_code=OldCode, versions=Versions} ->
+                        OldSketch#treebuilder_sketch{cpp_code=CppCode,
+                                                     versions=[OldCode | Versions]}
+                end,
     
     {ResultSketch, NewState} = make_change(State, OldSketch, NewSketch),
     
