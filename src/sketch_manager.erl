@@ -9,6 +9,7 @@
 -export([list_sketches/0]).
 -export([get_sketch_state/1]).
 -export([save/2]).
+-export([rename/2]).
 -export([enable/1]).
 -export([disable/1]).
 -export([show_sketch/1]).
@@ -51,6 +52,9 @@ get_sketch_state(Name) ->
     gen_server:call(?MODULE, {get_sketch_state, Name}, infinity).
 save(Name, CppCode) ->
     gen_server:call(?MODULE, {save, Name, CppCode}, infinity).
+
+rename(OldName, NewName) ->
+    gen_server:call(?MODULE, {rename, OldName, NewName}, infinity).
 
 enable(Name) ->
     gen_server:call(?MODULE, {enable, Name}, infinity).
@@ -124,6 +128,16 @@ handle_call({save, Name, CppCode}, _From, State) ->
     {ResultSketch, NewState} = make_change(State, OldSketch, NewSketch),
     
     {reply, {ok, get_user_state(ResultSketch)}, NewState};
+
+handle_call({rename, OldName, NewName}, _From, State) ->
+    F = fun() -> mnesia:read(treebuilder_sketch, OldName) end,
+    case mnesia:activity(transaction, F) of
+        [] -> {reply, {error, <<"No sketch exists with that name">>}, State};
+        [OldSketch] ->
+            NewSketch = OldSketch#treebuilder_sketch{name=NewName},
+            {ResultSketch, NewState} = make_change(State, OldSketch, NewSketch),
+            {reply, {ok, get_user_state(ResultSketch)}, NewState}
+    end;
 
 handle_call({enable, Name}, _From, State) ->
     OldSketch = get_sketch_by_name_default(Name),
