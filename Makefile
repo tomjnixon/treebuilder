@@ -8,7 +8,7 @@ LOCAL_DEPS=mnesia
 # Whitespace to be used when creating files from templates.
 SP = 4
 
-SHELL_OPTS=-config rel/sys.config
+SHELL_OPTS=-config rel/sys.config -args_file rel/vm.args
 
 app:: priv/static/js/main.js priv/static/js/react-codemirror.js priv/static/em_main.js
 
