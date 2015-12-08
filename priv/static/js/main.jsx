@@ -373,16 +373,13 @@ var EditWindow = React.createClass({
     },
     
     on_save: function() {
-        var name = this.state.name
-        while (name == null) {
+        var name = this.state.name;
+        while (name == null || name == "") {
             name = prompt("Give it a name");
             
             if (name == null)
                 return;
-            if (name == "")
-                continue;
         }
-        this.setState({name: name});
         
         save(name, this.state.editor_cpp_code, function(status, new_state) {
             this.update_preview(new_state.cpp_code, new_state.js_code, new_state.errors);
