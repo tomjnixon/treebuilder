@@ -338,7 +338,7 @@ make_change(State, OldSketch, NewSketch) ->
     
     F = fun () ->
                 case OldName =:= NewName of
-                    false -> mnesia:delete(treebuilder_sketch, OldName);
+                    false -> mnesia:delete({treebuilder_sketch, OldName});
                     true -> do_nothing
                 end,
                 mnesia:write(NewWithResults)
