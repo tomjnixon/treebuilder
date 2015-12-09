@@ -8,6 +8,7 @@ start(_Type, _Args) ->
     Dispatch = cowboy_router:compile(
                  [
                   {'_', [{"/js_compile", js_compile_handler, []},
+                         {"/", cowboy_static, {priv_file, treebuilder, "static/index.html"}},
                          {"/assets/[...]", cowboy_static, {priv_dir, treebuilder, "static"}},
                          {"/sketches/[...]", sketches_handler, []}
                         ]}
