@@ -566,6 +566,22 @@ var EditWindow = React.createClass({
     }
 });
 
+var ShowSketchButton = React.createClass({
+    show_sketch: function(name) {
+        show_sketch(this.props.name, function(status) {
+        });
+    },
+    render: function() {
+        return (
+                <RBS.Button
+                        disabled={this.props.state != "enabled"}
+                        onClick={this.show_sketch}>
+                    Show on Tree
+                </RBS.Button>
+        );
+    },
+});
+
 var ListWindow = React.createClass({
     getInitialState: function() {
         return {
@@ -585,22 +601,15 @@ var ListWindow = React.createClass({
         }.bind(this));
         this.setState({busy: true});
     },
-    show_sketch: function(name) {
-        console.log("show " + name);
-        show_sketch(name, function(status) {
-        });
-    },
     render_sketch: function(sketch) {
         return (
             <RBS.Panel header={<h3>{sketch.name}</h3>} >
                 <RBS.Button onClick={this.props.on_edit_sketch.bind(this, sketch.name)}>
                     Edit
                 </RBS.Button>
-                <RBS.Button
-                        disabled={sketch.state != "enabled"}
-                        onClick={this.show_sketch.bind(this, sketch.name)}>
-                    Show on Tree
-                </RBS.Button>
+                <ShowSketchButton
+                    name={sketch.name}
+                    state={sketch.state} />
             </RBS.Panel>
         );
     },
