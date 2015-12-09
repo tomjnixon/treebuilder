@@ -518,21 +518,22 @@ var EditWindow = React.createClass({
                         Preview
                     </RBS.Button>
                     <RBS.Button
-                            disabled={!can_save}
+                            disabled={this.state.command_running || !can_save}
                             onClick={can_save ? this.on_save : null} >
                         Save
                     </RBS.Button>
                     <RBS.Button
+                            disabled={this.state.command_running}
                             onClick={this.on_done} >
                         Done
                     </RBS.Button>
                     <RBS.Button
-                            disabled={unsaved}
+                            disabled={this.state.command_running || unsaved}
                             onClick={this.on_delete} >
                         Delete
                     </RBS.Button>
                     <RBS.Button
-                            disabled={unsaved}
+                            disabled={this.state.command_running || unsaved}
                             onClick={this.on_rename} >
                         Rename
                     </RBS.Button>
