@@ -654,9 +654,7 @@ var App = React.createClass({
         }.bind(this));
     },
     done_editing: function() {
-        get_test_mod(function (cpp_code) {
-            this.setState({editing: null});
-        }.bind(this));
+        this.setState({editing: null});
     },
     render: function() {
         var panel;
