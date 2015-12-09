@@ -240,7 +240,7 @@ var Preview = React.createClass({
         var texture = THREE.ImageUtils.loadTexture("/assets/img/particle.png")
         var material = new THREE.PointsMaterial({
             color: 0xFFFFFF,
-            size: 50,
+            size: 30,
             map: texture,
             blending: THREE.AdditiveBlending,
             depthTest: false,
@@ -250,10 +250,9 @@ var Preview = React.createClass({
         
         particles.vertices = this.props.module.get_positions();
 
-        // Add a random color for each particle
+        // Set all pixels initially black.
         for(var p = 0; p < particles.vertices.length; p++) {
-            var color = new THREE.Color();
-            color.setHSL( Math.random(), 1.0, 0.5 );
+            var color = new THREE.Color(0);
             particles.colors.push(color);
         }
 
