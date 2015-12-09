@@ -3,6 +3,7 @@
 
 namespace pattern_impl {
     void setup();
+    void clear();
 }
 
 #endif

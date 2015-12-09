@@ -18,6 +18,7 @@ namespace sketches {
         
         current_sketch = 0;
         next_time = millis() + sketch_run_time;
+        pattern_impl::clear();
         sketches[current_sketch].setup();
     }
     
@@ -25,6 +26,7 @@ namespace sketches {
         if (next_time <= millis()) {
             next_time += sketch_run_time;
             current_sketch = (current_sketch + 1) % num_sketches;
+            pattern_impl::clear();
             sketches[current_sketch].setup();
             Serial.write(current_sketch);
         }
@@ -35,6 +37,7 @@ namespace sketches {
     void switch_to(int num) {
         if (num < num_sketches) {
             current_sketch = num;
+            pattern_impl::clear();
             sketches[current_sketch].setup();
             next_time = millis() + sketch_run_time;
         }
