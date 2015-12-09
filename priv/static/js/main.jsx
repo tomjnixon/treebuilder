@@ -538,6 +538,10 @@ var EditWindow = React.createClass({
                         Rename
                     </RBS.Button>
                     {enable_button}
+                    <ShowSketchButton
+                        disabled={this.state.command_running}
+                        name={this.state.name}
+                        state={this.state.state} />
                 </div>
                 );
         
@@ -567,6 +571,9 @@ var EditWindow = React.createClass({
 });
 
 var ShowSketchButton = React.createClass({
+    getDefaultProps: function() {
+        return {disabled: false};;
+    },
     show_sketch: function(name) {
         show_sketch(this.props.name, function(status) {
         });
@@ -574,7 +581,7 @@ var ShowSketchButton = React.createClass({
     render: function() {
         return (
                 <RBS.Button
-                        disabled={this.props.state != "enabled"}
+                        disabled={this.props.disabled || this.props.state != "enabled"}
                         onClick={this.show_sketch}>
                     Show on Tree
                 </RBS.Button>
