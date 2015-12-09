@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include "leds.h"
 
-const int brightness = 100;
-
 void setPixel(uint32_t num, uint32_t color);
 void setPixel(uint32_t num, uint8_t red, uint8_t green, uint8_t blue);
 
@@ -22,11 +20,14 @@ void show(void);
 int makeColor(unsigned int hue, unsigned int saturation, unsigned int lightness);
 
 #ifdef JS_MODE
+#include <stdio.h>
 uint32_t millis(void);
 uint32_t micros(void);
 
 void setup();
 void loop();
+#else
+#define printf
 #endif
 
 #endif
