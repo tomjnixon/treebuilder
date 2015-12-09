@@ -176,7 +176,9 @@ function load_module(src) {
         },
         num_leds: num_leds,
         get_colors: function() {
-            module._c_loop();
+            // Call multiple times to better match the real tree speed.
+            for (var i = 0; i < 3; i++)
+                module._c_loop();
 
             if (leds_updated[0]) {
                 leds_updated[0] = 0;
