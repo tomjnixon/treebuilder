@@ -277,8 +277,8 @@ try_sync_tree(State=#state{tree_synced=false, current_hex=Hex}) ->
             error_logger:error_report([error_writing_hex, {error, noproc} | MessageParts]),
             State#state{tree_synced=false};
         exit:{{nodedown, Node}, _} ->
-            error_logger:error_report([error_switching_sketch, {error, {nodedown, Node}} | MessageParts]),
-            {reply, error, State};
+            error_logger:error_report([error_writing_hex, {error, {nodedown, Node}} | MessageParts]),
+            State#state{tree_synced=false};
         Error ->
             error_logger:error_report([error_writing_hex, {error, Error} | MessageParts]),
             State#state{tree_synced=false}
