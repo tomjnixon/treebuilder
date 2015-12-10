@@ -427,6 +427,7 @@ var EditWindow = React.createClass({
             this.update_preview(new_state.cpp_code, new_state.js_code, new_state.errors);
             this.setState({
                 state: new_state.state,
+                name: new_state.name,
                 cpp_code: new_state.cpp_code,
                 command_running: false,
             });
