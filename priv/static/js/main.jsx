@@ -485,6 +485,7 @@ var EditWindow = React.createClass({
             lineNumbers: true,
             matchBrackets: true,
             mode: "text/x-c++src",
+            indentUnit: 4,
         };
         
         var code = <ReactCodeMirror value={this.state.editor_cpp_code}
