@@ -1,3 +1,5 @@
+// YOUR NAME HERE
+
 #include "pattern.h"
 
 const uint32_t speed = 20;
