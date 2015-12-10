@@ -7,7 +7,9 @@
 -export([start_link/0]).
 -export([install/1]).
 -export([list_sketches/0]).
+-export([list_sketches_server/0]).
 -export([get_sketch_state/1]).
+-export([get_sketch_state_server/1]).
 -export([save/2]).
 -export([rename/2]).
 -export([enable/1]).
@@ -46,10 +48,28 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 list_sketches() ->
+    % Strip off the code and the errors
+    Match = ets:fun2ms(fun(Sketch) ->
+                               Sketch#treebuilder_sketch{cpp_code=null, js_code=null, errors=null}
+                       end),
+    F = fun() -> mnesia:select(treebuilder_sketch, Match) end,
+    lists:map(fun get_user_state/1,
+              mnesia:activity(transaction, F)).
+
+list_sketches_server() ->
     gen_server:call(?MODULE, list_sketches, infinity).
 
 get_sketch_state(Name) ->
+    F = fun() -> case mnesia:read(treebuilder_sketch, Name) of
+                    [] -> null;
+                    [Sketch] -> get_user_state(Sketch)
+                 end
+        end,
+    mnesia:activity(transaction, F).
+
+get_sketch_state_server(Name) ->
     gen_server:call(?MODULE, {get_sketch_state, Name}, infinity).
+
 save(Name, CppCode) ->
     gen_server:call(?MODULE, {save, Name, CppCode}, infinity).
 
@@ -93,22 +113,12 @@ init([]) ->
     {ok, State}.
 
 handle_call(list_sketches, _From, State) ->
-    % Strip off the code and the errors
-    Match = ets:fun2ms(fun(Sketch) ->
-                               Sketch#treebuilder_sketch{cpp_code=null, js_code=null, errors=null}
-                       end),
-    F = fun() -> mnesia:select(treebuilder_sketch, Match) end,
-    Sketches = lists:map(fun get_user_state/1,
-                         mnesia:activity(transaction, F)),
+    Sketches = list_sketches(),
     {reply, Sketches, State};
 
 handle_call({get_sketch_state, Name}, _From, State) ->
-    F = fun() -> case mnesia:read(treebuilder_sketch, Name) of
-                    [] -> null;
-                    [Sketch] -> get_user_state(Sketch)
-                 end
-        end,
-    {reply, mnesia:activity(transaction, F), State};
+    SketchState = get_sketch_state(Name),
+    {reply, SketchState, State};
 
 handle_call(recompile, _From, State) ->
     {reply, ok, updated_code(State, true, [])};
