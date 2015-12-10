@@ -356,7 +356,10 @@ var EditWindow = React.createClass({
     },
     
     componentDidMount: function() {
-        this.update_preview(this.state.preview_cpp_code, this.state.js_code, this.state.errors);
+        if (this.state.preview_cpp_code == null)
+            this.on_preview();
+        else
+            this.update_preview(this.state.preview_cpp_code, this.state.js_code, this.state.errors);
     },
     
     update_cpp_code: function(new_cpp_code) {
