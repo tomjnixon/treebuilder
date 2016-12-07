@@ -25,12 +25,10 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 load_hex(Hex) ->
-    {ok, Node} = application:get_env(treebuilder, device_manager_node),
-    gen_server:call({?MODULE, Node}, {load_hex, Hex}, 20000).
+    gen_server:call(device_manager_address(), {load_hex, Hex}, 20000).
 
 change_sketch(Num) ->
-    {ok, Node} = application:get_env(treebuilder, device_manager_node),
-    gen_server:call({?MODULE, Node}, {change_sketch, Num}).
+    gen_server:call(device_manager_address(), {change_sketch, Num}).
 
 %% gen_server.
 
@@ -100,3 +98,6 @@ ensure_serial_disconnected(State=#state{serial_pid=Pid}) ->
     ok = srly:close(Pid),
     State#state{serial_pid=none}.
 
+% Get the address of the device manager
+device_manager_address() ->
+    {?MODULE, application:get_env(treebuilder, device_manager_node, node())}.
