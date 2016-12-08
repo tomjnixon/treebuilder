@@ -65,7 +65,10 @@ handle_call({compile_for_device, CppCodes}, _From, State) ->
                          WrapSketchesCode),
     
     % build it
-    {Status, Props} = exec:run([os:find_executable("make"), "-C", TemplateDir],
+    TemplateArgs = application:get_env(treebuilder, teensy_template_args, []),
+    {Status, Props} = exec:run([os:find_executable("make"),
+                                "-C", TemplateDir,
+                                "TARGET=out"] ++ TemplateArgs,
                                [{stderr, stdout}, stdout, sync]),
     
     % get output
