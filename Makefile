@@ -2,8 +2,8 @@ PROJECT = treebuilder
 PROJECT_DESCRIPTION = New project
 PROJECT_VERSION = 0.0.1
 
-DEPS = cowboy jiffy erlexec sync erlydtl srly
-LOCAL_DEPS=mnesia
+DEPS = cowboy jiffy erlexec erlydtl srly
+LOCAL_DEPS = mnesia sasl
 
 # Whitespace to be used when creating files from templates.
 SP = 4
