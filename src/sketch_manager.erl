@@ -45,6 +45,8 @@
 
 -spec start_link() -> {ok, pid()}.
 start_link() ->
+    mnesia:wait_for_tables([treebuilder_sketch, treebuilder_sketch_deleted], 5000),
+
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 list_sketches() ->
