@@ -16,6 +16,7 @@ init([]) ->
               permanent, 5000, worker, [device_compiler]},
              {sketch_manager,
               {sketch_manager, start_link, []},
-              permanent, 5000, worker, [sketch_manager]}
+              permanent, 5000, worker, [sketch_manager, js_compiler,
+                                        device_compiler, device_manager]}
             ],
     {ok, {{one_for_one, 2, 7}, Procs}}.
