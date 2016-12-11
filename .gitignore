@@ -2,9 +2,5 @@ _rel
 deps/
 ebin/
 .erlang.mk
-treebuilder.d
-priv/static/em_main.js
-priv/static/em_main.js.mem
-priv/static/js/main.js
-priv/static/js/react-codemirror.js
+*.d
 node_modules

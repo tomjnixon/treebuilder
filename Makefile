@@ -1,25 +1,17 @@
-PROJECT = treebuilder
+PROJECT = treebuilder_apps
 PROJECT_DESCRIPTION = New project
-PROJECT_VERSION = 0.0.1
+PROJECT_VERSION = 0.1.0
 
-DEPS = cowboy jiffy erlexec erlydtl srly
-LOCAL_DEPS = mnesia sasl
-
-# Whitespace to be used when creating files from templates.
 SP = 4
 
-SHELL_OPTS=-config rel/sys.config -args_file rel/vm.args
+RELX_URL = https://github.com/erlware/relx/releases/download/v3.22.0/relx
 
-app:: priv/static/js/main.js priv/static/js/react-codemirror.js priv/static/em_main.js
+release = local
 
-priv/static/em_main.js: priv/js_compile/em_main.cpp priv/compile/pattern.h
-	# the stack on dynamic modules does not seem to free the stack; this is
-	# supposed to be running on a uC anyway...
-	/usr/lib/emscripten/em++ -s MAIN_MODULE=1 -s TOTAL_MEMORY=33554432 -s TOTAL_STACK=65536 -o $@ -Ipriv/compile $< priv/compile/led_positions.cpp
+RELX_CONFIG = $(CURDIR)/rel/$(release)/relx.config
+RELX_OPTS = --sys_config $(CURDIR)/rel/$(release)/sys.config
+RELX_OPTS += --vm_args $(CURDIR)/rel/$(release)/vm.args
 
-%.js : %.jsx
-	babel --presets es2015,react -o $@ $<
-
-# priv/static/js/main.js : priv/static/jsx/main.jsx
+SHELL_OPTS=-config rel/local/sys.config -args_file rel/local/vm.args
 
 include erlang.mk

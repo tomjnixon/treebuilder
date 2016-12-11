@@ -42,7 +42,7 @@ handle_call({load_hex, Hex}, _From, State) ->
     ok = file:write_file(HexFile, Hex),
     
     {ok, _} = exec:run([os:find_executable("teensy-loader-cli"), "-v", "-s", "--mcu=mk20dx256", HexFile],
-                       [sync]),
+                       [sync, stderr, stdout]),
     
     file:delete(HexFile),
     State2 = ensure_serial_connected(State1),

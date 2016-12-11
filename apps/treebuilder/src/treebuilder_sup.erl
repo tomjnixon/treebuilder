@@ -14,9 +14,6 @@ init([]) ->
              {device_compiler,
               {device_compiler, start_link, []},
               permanent, 5000, worker, [device_compiler]},
-             {device_manager,
-              {device_manager, start_link, []},
-              permanent, 5000, worker, [device_manager]},
              {sketch_manager,
               {sketch_manager, start_link, []},
               permanent, 5000, worker, [sketch_manager]}
