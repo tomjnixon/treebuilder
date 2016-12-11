@@ -3,14 +3,14 @@
 #include "pattern.h"
 
 const uint32_t speed = 20;
-int last_offset;
+uint32_t last_offset;
 
 void setup() {
     last_offset = 0;
 }
 
 void loop() {
-    int offset = (millis() / speed);
+    uint32_t offset = (millis() / speed);
     
     if (offset == last_offset) return;
     last_offset = offset;
