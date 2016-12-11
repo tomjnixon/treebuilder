@@ -63,7 +63,8 @@ handle_cast(_Msg, State) ->
 handle_info({serial, _Pid, _Data}, State) ->
     % io:format("got data: ~p~n", [Data]),
     {noreply, State};
-handle_info(_Info, State) ->
+handle_info(Info, State) ->
+    error_logger:info_report([unknown_message, {message, Info}]),
     {noreply, State}.
 
 terminate(_Reason, _State) ->
@@ -81,8 +82,29 @@ ensure_serial_connected(State=#state{serial_pid=none}, Ntries) ->
     Fname = "/dev/ttyACM0",
     case file:read_file_info(Fname) of
         {ok, _} ->
-            {ok, Pid} = srly:start_link(Fname, []),
-            State#state{serial_pid=Pid};
+            % Attempt to start the serial port. This may occasionally fail
+            % under normal operation, if the serial port disappears between
+            % checking that it exists and trying to open it; so handle this
+            % 'gracefully'.
+            process_flag(trap_exit, true),
+            Result = srly:start_link(Fname, []),
+
+            receive % handle possible exit message
+                {'EXIT', _, _} -> ok
+            after
+                10 -> ok
+            end,
+
+            process_flag(trap_exit, false),
+
+            case Result of
+                {ok, Pid} ->
+                    State#state{serial_pid=Pid};
+                {error, Error} ->
+                    error_logger:error_report([error_opening_serial_port, {error, Error}]),
+                    timer:sleep(500),
+                    ensure_serial_connected(State, Ntries - 1)
+            end;
         {error, _} ->
             timer:sleep(500),
             ensure_serial_connected(State, Ntries - 1)
