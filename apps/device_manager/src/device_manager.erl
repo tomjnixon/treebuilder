@@ -100,4 +100,4 @@ ensure_serial_disconnected(State=#state{serial_pid=Pid}) ->
 
 % Get the address of the device manager
 device_manager_address() ->
-    {?MODULE, application:get_env(treebuilder, device_manager_node, node())}.
+    {?MODULE, application:get_env(device_manager, device_manager_node, node())}.
