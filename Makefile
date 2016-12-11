@@ -9,7 +9,7 @@ RELX_URL = https://github.com/erlware/relx/releases/download/v3.22.0/relx
 release = local
 
 RELX_CONFIG = $(CURDIR)/rel/$(release)/relx.config
-RELX_OPTS = --sys_config $(CURDIR)/rel/$(release)/sys.config
+RELX_OPTS = $(relx_opts) --sys_config $(CURDIR)/rel/$(release)/sys.config
 RELX_OPTS += --vm_args $(CURDIR)/rel/$(release)/vm.args
 
 SHELL_OPTS=-config rel/local/sys.config -args_file rel/local/vm.args
