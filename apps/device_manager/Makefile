@@ -1,6 +1,6 @@
 PROJECT = device_manager
 PROJECT_DESCRIPTION = New project
-PROJECT_VERSION = 0.1.0
+PROJECT_VERSION = 0.1.1
 
 DEPS = exec srly
 LOCAL_DEPS = sasl
