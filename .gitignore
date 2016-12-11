@@ -1,6 +1,6 @@
 _rel
 deps/
-ebin/
+**/ebin/*
 !*.appup
 .erlang.mk
 *.d
