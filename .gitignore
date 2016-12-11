@@ -1,6 +1,7 @@
 _rel
 deps/
 ebin/
+!*.appup
 .erlang.mk
 *.d
 node_modules
