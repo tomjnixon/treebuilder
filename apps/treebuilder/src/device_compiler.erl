@@ -31,20 +31,17 @@ init([]) ->
     {ok, #state{}}.
 
 handle_call({compile_for_device, CppCodes}, _From, State) ->
-    {ok, TemplateDir} = application:get_env(treebuilder, teensy_template_dir),
+    {ok, TemplateDir} = application:get_env(treebuilder, template_dir),
     SrcPath = filename:join(TemplateDir, "src"),
     SketchesPath = filename:join(TemplateDir, "sketches"),
-    HexPath = filename:join(TemplateDir, "out.hex"),
+    {ok, HexPathRel} = application:get_env(treebuilder, hex_path),
+    HexPath = filename:join(TemplateDir, HexPathRel),
     
     CompileDir = filename:join(code:priv_dir(treebuilder), "compile"),
 
     % Clean out the old sketches and source
     exec:run([os:find_executable("rm"), "-rf", SrcPath, SketchesPath], [sync]),
     exec:run([os:find_executable("mkdir"), "-p", SketchesPath], [sync]),
-    
-    % this dependency file causes problems when the number of sketches decreases
-    exec:run([os:find_executable("rm"), "-f",
-            filename:join(TemplateDir, "build/src/wrap_sketches.d")], [sync]),
     
     % Put the correct code in the src dir.
     exec:run([os:find_executable("cp"), "-r", CompileDir, SrcPath], [sync]),
@@ -65,10 +62,8 @@ handle_call({compile_for_device, CppCodes}, _From, State) ->
                          WrapSketchesCode),
     
     % build it
-    TemplateArgs = application:get_env(treebuilder, teensy_template_args, []),
-    {Status, Props} = exec:run([os:find_executable("make"),
-                                "-C", TemplateDir,
-                                "TARGET=out"] ++ TemplateArgs,
+    {Status, Props} = exec:run([os:find_executable("pio"), "run", "-v",
+                                "-d", TemplateDir, "-t", HexPath],
                                [{stderr, stdout}, stdout, sync]),
     
     % get output

@@ -1,4 +1,4 @@
-#include "WProgram.h"
+#include "Arduino.h"
 #include "sketches.h"
 #include "leds.h"
 #include "pattern_impl.h"
@@ -44,16 +44,17 @@ namespace sketches {
     }
 };
 
-extern "C" int main(void)
+void setup()
 {
     Serial.begin(9600);
     
     sketches::setup();
-    while (1) {
-        sketches::loop();
-        while (Serial.available()) {
-            sketches::switch_to(Serial.read());
-        }
-    }
 }
 
+void loop()
+{
+  sketches::loop();
+  while (Serial.available()) {
+    sketches::switch_to(Serial.read());
+  }
+}
