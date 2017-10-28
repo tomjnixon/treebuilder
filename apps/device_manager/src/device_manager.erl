@@ -15,7 +15,9 @@
 -export([code_change/3]).
 
 -record(state, {
-        serial_pid=none
+        serial_pid=none,
+        serial_port,
+        upload_template
 }).
 
 %% API.
@@ -33,16 +35,27 @@ change_sketch(Num) ->
 %% gen_server.
 
 init([]) ->
-    {ok, ensure_serial_connected(#state{})}.
+    {ok, UploadTemplateStr} = application:get_env(device_manager, upload_dtl),
+    {ok, UploadTemplate} = erlydtl:compile_template(UploadTemplateStr, device_manager_dtl,
+                                                    [{out_dir, false}]),
+    
+    {ok, SerialPort} = application:get_env(device_manager, serial_port),
+    
+    {ok, ensure_serial_connected(#state{serial_port=SerialPort,
+                                        upload_template=UploadTemplate})}.
 
-handle_call({load_hex, Hex}, _From, State) ->
+handle_call({load_hex, Hex}, _From, State=#state{serial_port=SerialPort,
+                                                 upload_template=UploadTemplate}) ->
     State1 = ensure_serial_disconnected(State),
     
     HexFile = lib:nonl(os:cmd("mktemp /tmp/XXXXXX.hex")),
     ok = file:write_file(HexFile, Hex),
     
-    {ok, _} = exec:run([os:find_executable("teensy-loader-cli"), "-v", "-s", "--mcu=mk20dx256", HexFile],
-                       [sync, stderr, stdout]),
+    {ok, CmdIO} = UploadTemplate:render([{serial_port, SerialPort},
+                                         {hex_file, HexFile}]),
+    Cmd = erlang:binary_to_list(erlang:iolist_to_binary(CmdIO)),
+    
+    {ok, _} = exec:run(Cmd, [sync, stderr, stdout]),
     
     file:delete(HexFile),
     State2 = ensure_serial_connected(State1),
@@ -78,16 +91,17 @@ code_change(_OldVsn, State, _Extra) ->
 % Try to connect Ntries times.
 ensure_serial_connected(_State, 0) ->
     erlang:error(could_not_connect);
-ensure_serial_connected(State=#state{serial_pid=none}, Ntries) ->
-    Fname = "/dev/ttyACM0",
-    case file:read_file_info(Fname) of
+ensure_serial_connected(State=#state{serial_pid=none,
+                                     serial_port=SerialPort}, Ntries) ->
+    case file:read_file_info(SerialPort) of
         {ok, _} ->
             % Attempt to start the serial port. This may occasionally fail
             % under normal operation, if the serial port disappears between
             % checking that it exists and trying to open it; so handle this
             % 'gracefully'.
             process_flag(trap_exit, true),
-            Result = srly:start_link(Fname, []),
+            Result = srly:start_link(SerialPort,
+                                     application:get_env(device_manager, serial_opts, [])),
 
             receive % handle possible exit message
                 {'EXIT', _, _} -> ok
