@@ -4,7 +4,7 @@ PROJECT_VERSION = 0.1.0
 
 SP = 4
 
-RELX_URL = https://github.com/erlware/relx/releases/download/v3.22.0/relx
+RELX_URL = https://github.com/erlware/relx/releases/download/v3.23.1/relx
 
 release = local
 
