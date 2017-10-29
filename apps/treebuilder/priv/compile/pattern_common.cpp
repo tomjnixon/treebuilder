@@ -1,4 +1,5 @@
 #include "pattern.h"
+#include <stdlib.h>
 
 unsigned int h2rgb(unsigned int v1, unsigned int v2, unsigned int hue)
 {
@@ -32,4 +33,9 @@ int makeColor(unsigned int hue, unsigned int saturation, unsigned int lightness)
                 blue = h2rgb(var1, var2, (hue >= 120) ? hue - 120 : hue + 240) * 255 / 600000;
         }
         return (red << 16) | (green << 8) | blue;
+}
+
+void message_free(message_t msg) {
+  free(msg.topic);
+  free(msg.payload);
 }

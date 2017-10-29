@@ -2,6 +2,7 @@
 #define PATTERN_H
 
 #include <stdint.h>
+#include <string.h>
 #include "leds.h"
 
 void setPixel(uint32_t num, uint32_t color);
@@ -18,6 +19,20 @@ void show(void);
 //
 //   lightness:  0 to 100 - how light the color is, 100=white, 50=color, 0=black
 int makeColor(unsigned int hue, unsigned int saturation, unsigned int lightness);
+
+struct message_t {
+  char *topic;
+  char *payload;
+  size_t payload_len;
+};
+void message_free(message_t msg);
+
+size_t message_available();
+message_t message_read();
+
+void publish(char *topic, size_t payload_len, char *payload);
+
+void subscribe(char *topic);
 
 #ifdef JS_MODE
 #include <stdio.h>
