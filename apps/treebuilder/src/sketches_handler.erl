@@ -1,15 +1,10 @@
 -module(sketches_handler).
--behaviour(cowboy_http_handler).
+-behaviour(cowboy_handler).
 
--export([init/3]).
--export([handle/2]).
--export([terminate/3]).
+-export([init/2]).
 
--record(state, {
-}).
-
-init(_, Req, _Opts) ->
-    {ok, Req, #state{}}.
+init(Req=#{path_info := Path}, State) ->
+    handle(Req, Path, State).
 
 handle(Req, [<<"list_sketches">>], State) ->
     Sketches = sketch_manager:list_sketches(),
@@ -79,14 +74,6 @@ handle(Req, [<<"show_sketch">>], State1) ->
               end
       end);
 
-handle(Req, _, State) ->
-    {ok, Req2} = cowboy_req:reply(404, "Not Found", Req),
+handle(Req, _Path, State) ->
+    {ok, Req2} = cowboy_req:reply(404, Req),
     {ok, Req2, State}.
-
-handle(Req, State=#state{}) ->
-    {PathInfo, Req2} = cowboy_req:path_info(Req),
-    handle(Req2, PathInfo, State).
-    
-
-terminate(_Reason, _Req, _State) ->
-    ok.

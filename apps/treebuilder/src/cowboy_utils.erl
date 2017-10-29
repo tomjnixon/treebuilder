@@ -5,12 +5,12 @@
 -export([json_req_response/3]).
 
 reply_json(StatusCode, Json, Req) ->
-    Headers = [{<<"Content-Type">>, <<"application/json">>}],
+    Headers = #{<<"Content-Type">> => <<"application/json">>},
     Body = jiffy:encode(Json),
-    cowboy_req:reply(StatusCode, Headers, Body, Req).
+    {ok, cowboy_req:reply(StatusCode, Headers, Body, Req)}.
 
 read_json(Req) ->
-    case cowboy_req:body(Req) of
+    case cowboy_req:read_body(Req) of
         {ok, Body, Req2} ->
             Json = jiffy:decode(Body, [return_maps]),
             {ok, Json, Req2};

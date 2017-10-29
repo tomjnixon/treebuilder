@@ -13,9 +13,10 @@ start(_Type, _Args) ->
                          {"/sketches/[...]", sketches_handler, []}
                         ]}
                  ]),
-    cowboy:start_http(my_http_listener, 100, [{port, 8080}],
-                      [{env, [{dispatch, Dispatch}]}]
-                     ),
+    {ok, _} = cowboy:start_clear(my_http_listener,
+                                 [{port, 8080}],
+                                 #{env => #{dispatch => Dispatch}}
+                                ),
     treebuilder_sup:start_link().
 
 stop(_State) ->
