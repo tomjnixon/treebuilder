@@ -10,7 +10,8 @@ start(_Type, _Args) ->
                   {'_', [{"/js_compile", js_compile_handler, []},
                          {"/", cowboy_static, {priv_file, treebuilder, "static/index.html"}},
                          {"/assets/[...]", cowboy_static, {priv_dir, treebuilder, "static"}},
-                         {"/sketches/[...]", sketches_handler, []}
+                         {"/sketches/[...]", sketches_handler, []},
+                         {"/ws", ws_handler, []}
                         ]}
                  ]),
     {ok, _} = cowboy:start_clear(my_http_listener,
