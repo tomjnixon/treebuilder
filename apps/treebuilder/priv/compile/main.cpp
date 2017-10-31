@@ -12,7 +12,7 @@ namespace comms {
 
 namespace sketches {
   Sketch *sketches;
-  int num_sketches;
+  size_t num_sketches;
 
   const uint32_t sketch_run_time = 1000 * 30;
   uint32_t next_time;
@@ -189,7 +189,7 @@ namespace comms {
     write_frame_end();
   }
 
-  void send_publish(char *topic, size_t payload_len, char *payload) {
+  void send_publish(const char *topic, size_t payload_len, const char *payload) {
     size_t topic_len = strlen(topic);
     if (topic_len > 255) topic_len = 255;
 
@@ -214,7 +214,7 @@ namespace comms {
     write_frame_end();
   }
 
-  void send_subscribe(char *topic) {
+  void send_subscribe(const char *topic) {
     size_t topic_len = strlen(topic);
     if (topic_len > 255) topic_len = 255;
 
@@ -240,11 +240,11 @@ message_t message_read() {
   return comms::pop_message();
 }
 
-void publish(char *topic, size_t payload_len, char *payload) {
+void publish(const char *topic, size_t payload_len, const char *payload) {
   comms::send_publish(topic, payload_len, payload);
 }
 
-void subscribe(char *topic) {
+void subscribe(const char *topic) {
   comms::send_subscribe(topic);
 }
 

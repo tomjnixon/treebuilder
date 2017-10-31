@@ -30,9 +30,9 @@ void message_free(message_t msg);
 size_t message_available();
 message_t message_read();
 
-void publish(char *topic, size_t payload_len, char *payload);
+void publish(const char *topic, size_t payload_len, const char *payload);
 
-void subscribe(char *topic);
+void subscribe(const char *topic);
 
 #ifdef JS_MODE
 #include <stdio.h>

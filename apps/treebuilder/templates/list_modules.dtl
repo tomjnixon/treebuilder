@@ -14,7 +14,7 @@ Sketch sketch_array[] = {
 {% endfor %}
 };
 
-void get_sketches(Sketch **sketches, int *n) {
+void get_sketches(Sketch **sketches, size_t *n) {
     *sketches = sketch_array;
     *n = sizeof(sketch_array) / sizeof(sketch_array[0]);
 }
