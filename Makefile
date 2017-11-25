@@ -6,7 +6,7 @@ SP = 4
 
 RELX_URL = https://github.com/erlware/relx/releases/download/v3.23.1/relx
 
-release = local
+release ?= local
 
 RELX_CONFIG = $(CURDIR)/rel/$(release)/relx.config
 RELX_OPTS = $(relx_opts) --sys_config $(CURDIR)/rel/$(release)/sys.config
