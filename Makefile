@@ -15,4 +15,6 @@ RELX_OPTS += --vm_args $(CURDIR)/rel/$(release)/vm.args
 SHELL_OPTS=-config rel/local/sys.config -args_file rel/local/vm.args
 SHELL_DEPS = sync
 
+DEP_PLUGINS = cowboy
+
 include erlang.mk
