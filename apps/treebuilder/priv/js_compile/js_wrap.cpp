@@ -60,4 +60,31 @@ extern "C" {
     void c_loop() {
         loop();
     }
+
+  void c_publish(const char *topic, size_t payload_len, const char *payload);
+  void c_subscribe(const char *topic);
+  size_t c_message_available();
+  message_t c_message_read();
+
+  void c_fill_message(message_t *message, char *topic, size_t payload_len, char *payload) {
+    message->topic = topic;
+    message->payload_len = payload_len;
+    message->payload = payload;
+  }
+}
+
+void publish(const char *topic, size_t payload_len, const char *payload) {
+  c_publish(topic, payload_len, payload);
+}
+
+void subscribe(const char *topic) {
+  c_subscribe(topic);
+}
+
+size_t message_available() {
+  return c_message_available();
+}
+
+message_t message_read() {
+  return c_message_read();
 }

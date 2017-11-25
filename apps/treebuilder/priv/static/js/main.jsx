@@ -161,7 +161,45 @@ function load_module(src) {
     var leds_positions_stride = module._get_led_positions_stride();
     var leds_positions = new Int8Array(Module.HEAP8.buffer, leds_positions_ptr,
             leds_positions_stride * num_leds);
-    
+
+    var ws = new WSConnection();
+
+    var message_queue = [];
+
+    ws.on_message = function(message) {
+        if (message_queue.length > 100)
+            message_queue.shift();
+        message_queue.push(message);
+    };
+
+    Module._c_subscribe = function(topic_ptr) {
+        var topic = UTF8ToString(topic_ptr);
+        ws.subscribe(topic);
+    }
+
+    Module._c_publish = function(topic_ptr, payload_len, payload_ptr) {
+        var topic = UTF8ToString(topic_ptr);
+        var payload_bytes = new Uint8Array(Module.HEAPU8.buffer, payload_ptr, payload_len);
+        ws.publish_byte_array(topic, payload_bytes);
+    }
+
+    Module._c_message_available = function() {
+        return message_queue.length;
+    };
+
+    Module._c_message_read = function(c_message) {
+        if (message_queue.length) {
+            var message = message_queue.shift();
+            var payload = base64js.toByteArray(message.payload64);
+            module._c_fill_message(
+                c_message,
+                Module.allocate(intArrayFromString(message.topic), 'i8', ALLOC_NORMAL),
+                payload.length,
+                Module.allocate(payload, 'i8', ALLOC_NORMAL)
+            );
+        }
+    };
+
     try {
         module._c_setup();
         module._c_loop();
@@ -173,6 +211,7 @@ function load_module(src) {
     return {
         dispose: function() {
             module.cleanups.forEach(function(cleanup) { cleanup() });
+            ws.close();
         },
         num_leds: num_leds,
         get_colors: function() {
