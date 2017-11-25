@@ -63,7 +63,7 @@ handle_call({compile_for_device, CppCodes}, _From, State) ->
     
     % build it
     {Status, Props} = exec:run([os:find_executable("pio"), "run", "-v",
-                                "-d", TemplateDir, "-t", HexPath],
+                                "-d", TemplateDir, "-t", HexPathRel],
                                [{stderr, stdout}, stdout, sync]),
     
     % get output
