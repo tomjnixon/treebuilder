@@ -2,7 +2,7 @@ PROJECT = treebuilder
 PROJECT_DESCRIPTION = New project
 PROJECT_VERSION = 0.1.3
 
-DEPS = cowboy jiffy exec erlydtl
+DEPS = cowboy jiffy exec erlydtl ebus
 LOCAL_DEPS = mnesia sasl
 
 dep_cowboy_commit = 2.0.0
