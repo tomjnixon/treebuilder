@@ -1,14 +1,14 @@
 #include "Arduino.h"
-#include "sketches.h"
 #include "leds.h"
 #include "pattern.h"
 #include "pattern_impl.h"
+#include "sketches.h"
 
 namespace comms {
   void send_switched(size_t sketch);
   void clear_messages();
   void send_unsub_all();
-};
+};  // namespace comms
 
 namespace sketches {
   Sketch *sketches;
@@ -52,24 +52,26 @@ namespace sketches {
     next_time = millis() + sketch_run_time;
   }
 
-};
+};  // namespace sketches
 
 namespace comms {
 
   void wait_frame_boundary() {
     while (true) {
-      while (!Serial.available());
-      if (Serial.read() == 0x7E)
-        return;
+      while (!Serial.available())
+        ;
+      if (Serial.read() == 0x7E) return;
     }
   }
 
   char read_char() {
-    while (!Serial.available());
+    while (!Serial.available())
+      ;
     char c = Serial.read();
 
     if (c == 0x7D) {
-      while (!Serial.available());
+      while (!Serial.available())
+        ;
       return Serial.read() ^ 0x20;
 
     } else {
@@ -106,7 +108,6 @@ namespace comms {
     SEND_SUBSCRIBE = 3,
   };
 
-
   const size_t MSG_Q_LEN = 3;
 
   message_t message_queue[MSG_Q_LEN];
@@ -116,7 +117,7 @@ namespace comms {
     message_t res = message_queue[0];
 
     for (size_t i = 0; i < message_queue_len - 1; i++)
-      message_queue[i] = message_queue[i+1];
+      message_queue[i] = message_queue[i + 1];
 
     message_queue_len--;
 
@@ -176,7 +177,8 @@ namespace comms {
       }
 
       // consume frame end
-      while (!Serial.available());
+      while (!Serial.available())
+        ;
       Serial.read();
     }
   }
@@ -189,7 +191,8 @@ namespace comms {
     write_frame_end();
   }
 
-  void send_publish(const char *topic, size_t payload_len, const char *payload) {
+  void send_publish(const char *topic, size_t payload_len,
+                    const char *payload) {
     size_t topic_len = strlen(topic);
     if (topic_len > 255) topic_len = 255;
 
@@ -197,13 +200,11 @@ namespace comms {
     write_char(SEND_PUBLISH);
 
     write_char(topic_len);
-    for (size_t i = 0; i < topic_len; i++)
-      write_char(topic[i]);
+    for (size_t i = 0; i < topic_len; i++) write_char(topic[i]);
 
     write_char(payload_len >> 8);
     write_char(payload_len);
-    for (size_t i = 0; i < payload_len; i++)
-      write_char(payload[i]);
+    for (size_t i = 0; i < payload_len; i++) write_char(payload[i]);
 
     write_frame_end();
   }
@@ -222,16 +223,14 @@ namespace comms {
 
     write_char(SEND_SUBSCRIBE);
     write_char(topic_len);
-    for (size_t i = 0; i < topic_len; i++)
-      write_char(topic[i]);
+    for (size_t i = 0; i < topic_len; i++) write_char(topic[i]);
 
     write_frame_end();
   }
-};
+};  // namespace comms
 
 size_t message_available() {
-  if (comms::message_queue_len == 0)
-    comms::loop();
+  if (comms::message_queue_len == 0) comms::loop();
 
   return comms::message_queue_len;
 }
@@ -248,15 +247,13 @@ void subscribe(const char *topic) {
   comms::send_subscribe(topic);
 }
 
-void setup()
-{
+void setup() {
   Serial.begin(9600);
 
   sketches::setup();
 }
 
-void loop()
-{
+void loop() {
   sketches::loop();
   comms::loop();
 

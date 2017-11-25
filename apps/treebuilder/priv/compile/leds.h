@@ -3,10 +3,10 @@
 #include <stdint.h>
 
 typedef union {
-    struct {
-        int8_t x, y, z, rz, ry, rx;
-    };
-    int8_t axes[3];
+  struct {
+    int8_t x, y, z, rz, ry, rx;
+  };
+  int8_t axes[3];
 } LED;
 
 extern const LED *const leds;

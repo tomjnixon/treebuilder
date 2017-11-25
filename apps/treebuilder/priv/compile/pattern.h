@@ -18,7 +18,8 @@ void show(void);
 //   saturation: 0 to 100 - how bright or dull the color, 100=full, 0=gray
 //
 //   lightness:  0 to 100 - how light the color is, 100=white, 50=color, 0=black
-int makeColor(unsigned int hue, unsigned int saturation, unsigned int lightness);
+int makeColor(unsigned int hue, unsigned int saturation,
+              unsigned int lightness);
 
 struct message_t {
   char *topic;
