@@ -204,8 +204,8 @@ function load_module(src) {
         module._c_setup();
         module._c_loop();
     } catch (error) {
-        return {error: "Failed to call setup or loop."};
         console.log(error);
+        return {error: "Failed to call setup or loop."};
     }
     
     return {
