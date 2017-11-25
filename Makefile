@@ -13,5 +13,6 @@ RELX_OPTS = $(relx_opts) --sys_config $(CURDIR)/rel/$(release)/sys.config
 RELX_OPTS += --vm_args $(CURDIR)/rel/$(release)/vm.args
 
 SHELL_OPTS=-config rel/local/sys.config -args_file rel/local/vm.args
+SHELL_DEPS = sync
 
 include erlang.mk
