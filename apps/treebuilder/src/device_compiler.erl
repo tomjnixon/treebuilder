@@ -39,10 +39,17 @@ handle_call({compile_for_device, CppCodes}, _From, State) ->
     
     CompileDir = filename:join(code:priv_dir(treebuilder), "compile"),
 
+    {ok, PIOConfName} = application:get_env(treebuilder, pio_config),
+    PIOConfSource = filename:join([code:priv_dir(treebuilder), "pio_config", PIOConfName]),
+
     % Clean out the old sketches and source
     exec:run([os:find_executable("rm"), "-rf", SrcPath, SketchesPath], [sync]),
     exec:run([os:find_executable("mkdir"), "-p", SketchesPath], [sync]),
     
+    % put in the pio config
+    PIOConfDest = filename:join(TemplateDir, "platformio.ini"),
+    {ok, _} = exec:run([os:find_executable("cp"), PIOConfSource, PIOConfDest], [sync]),
+
     % Put the correct code in the src dir.
     exec:run([os:find_executable("cp"), "-r", CompileDir, SrcPath], [sync]),
     
