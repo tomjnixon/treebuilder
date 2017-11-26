@@ -5,3 +5,5 @@ deps/
 .erlang.mk
 *.d
 node_modules
+build_dir
+db
