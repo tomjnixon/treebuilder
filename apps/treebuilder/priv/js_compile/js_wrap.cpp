@@ -83,3 +83,6 @@ size_t message_available() {
 message_t message_read() {
   return c_message_read();
 }
+
+void priv_set_timeout(uint32_t timeout) {
+}

@@ -247,6 +247,10 @@ void subscribe(const char *topic) {
   comms::send_subscribe(topic);
 }
 
+void priv_set_timeout(uint32_t timeout) {
+  sketches::next_time = millis() + timeout;
+}
+
 void setup() {
   Serial.begin(9600);
 

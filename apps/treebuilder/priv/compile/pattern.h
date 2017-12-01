@@ -35,6 +35,8 @@ void publish(const char *topic, size_t payload_len, const char *payload);
 
 void subscribe(const char *topic);
 
+void priv_set_timeout(uint32_t timeout);
+
 #ifdef JS_MODE
 #include <stdio.h>
 uint32_t millis(void);
