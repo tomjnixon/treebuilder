@@ -30,7 +30,7 @@ The database must be created manually, by running:
 on the node you want to install on.
 
 If this has worked, as well as info messages this should return:
-    
+
     {[ok],[]}
 
 To get to an appropriately configured shell, either run 'make shell' if you're
