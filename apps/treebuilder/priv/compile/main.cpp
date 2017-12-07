@@ -20,6 +20,7 @@ namespace sketches {
 
   void switch_common(size_t num) {
     if (num < num_sketches) {
+      next_time = millis() + sketch_run_time;
       current_sketch = num;
       pattern_impl::clear();
       comms::send_unsub_all();
@@ -35,13 +36,11 @@ namespace sketches {
     pattern_impl::setup();
 
     switch_common(0);
-    next_time = millis() + sketch_run_time;
   }
 
   void loop(void) {
     if (next_time <= millis()) {
       switch_common((current_sketch + 1) % num_sketches);
-      next_time += sketch_run_time;
     }
 
     sketches[current_sketch].loop();
@@ -49,7 +48,6 @@ namespace sketches {
 
   void switch_to(size_t num) {
     switch_common(num);
-    next_time = millis() + sketch_run_time;
   }
 
 };  // namespace sketches
