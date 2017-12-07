@@ -1,6 +1,6 @@
 PROJECT = treebuilder
 PROJECT_DESCRIPTION = New project
-PROJECT_VERSION = 0.1.3
+PROJECT_VERSION = 0.1.4
 
 DEPS = cowboy jiffy exec erlydtl ebus
 LOCAL_DEPS = mnesia sasl
