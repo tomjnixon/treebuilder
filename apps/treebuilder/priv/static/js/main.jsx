@@ -139,7 +139,7 @@ function show_sketch(name, callback) {
 function load_lib(src) {
     // from the top of loadDynamicLibrary
     var libModule = eval(src)(
-      Runtime.alignFunctionTables(),
+      alignFunctionTables(),
       Module
     );
     
