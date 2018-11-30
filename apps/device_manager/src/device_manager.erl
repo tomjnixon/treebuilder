@@ -50,7 +50,7 @@ handle_call({load_hex, Hex}, _From, State=#state{serial_port=SerialPort,
                                                  upload_template=UploadTemplate}) ->
     State1 = ensure_serial_disconnected(State),
     
-    HexFile = lib:nonl(os:cmd("mktemp /tmp/XXXXXX.hex")),
+    HexFile = string:chomp(os:cmd("mktemp /tmp/XXXXXX.hex")),
     ok = file:write_file(HexFile, Hex),
     
     {ok, CmdIO} = UploadTemplate:render([{serial_port, SerialPort},

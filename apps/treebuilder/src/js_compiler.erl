@@ -40,8 +40,8 @@ handle_call({compile_js, CppCode}, _From, State) ->
     PatternCommon = filename:join(CompileDir, "pattern_common.cpp"),
     Wrapper = filename:join(JsCompileDir, "js_wrap.cpp"),
     
-    InFile = lib:nonl(os:cmd("mktemp /tmp/XXXXXX.cpp")),
-    OutFile = lib:nonl(os:cmd("mktemp /tmp/XXXXXX.js")),
+    InFile = string:chomp(os:cmd("mktemp /tmp/XXXXXX.cpp")),
+    OutFile = string:chomp(os:cmd("mktemp /tmp/XXXXXX.js")),
     
     ok = file:write_file(InFile, CppCode),
     
