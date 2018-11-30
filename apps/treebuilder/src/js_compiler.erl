@@ -48,6 +48,7 @@ handle_call({compile_js, CppCode}, _From, State) ->
     Cmd = ["/usr/lib/emscripten/em++",
            "-Wall", "-Werror", "-fcolor-diagnostics",
            "-s", "SIDE_MODULE=1",
+           "-s", "WASM=0",
            "-DJS_MODE",
            "-I", JsCompileDir,
            "-I", CompileDir,
