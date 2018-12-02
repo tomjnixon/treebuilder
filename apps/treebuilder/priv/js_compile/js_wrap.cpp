@@ -27,30 +27,37 @@ void show(void) {
 }
 
 extern "C" {
+  EMSCRIPTEN_KEEPALIVE
   uint32_t *get_ledColors_out() {
     return ledColors_out;
   }
 
+  EMSCRIPTEN_KEEPALIVE
   int get_num_leds() {
     return num_leds;
   }
 
+  EMSCRIPTEN_KEEPALIVE
   uint8_t *get_led_positions() {
     return (uint8_t *)leds;
   }
 
+  EMSCRIPTEN_KEEPALIVE
   size_t get_led_positions_stride() {
     return sizeof(*leds);
   }
 
+  EMSCRIPTEN_KEEPALIVE
   volatile bool *get_leds_updated() {
     return &leds_updated;
   }
 
+  EMSCRIPTEN_KEEPALIVE
   void c_setup() {
     setup();
   }
 
+  EMSCRIPTEN_KEEPALIVE
   void c_loop() {
     loop();
   }
@@ -60,6 +67,7 @@ extern "C" {
   size_t c_message_available();
   message_t c_message_read();
 
+  EMSCRIPTEN_KEEPALIVE
   void c_fill_message(message_t *message, char *topic, size_t payload_len,
                       char *payload) {
     message->topic = topic;
