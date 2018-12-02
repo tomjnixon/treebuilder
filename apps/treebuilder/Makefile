@@ -5,7 +5,8 @@ PROJECT_VERSION = 0.1.4
 DEPS = cowboy jiffy exec erlydtl ebus
 LOCAL_DEPS = mnesia sasl
 
-dep_cowboy_commit = 2.0.0
+dep_cowboy_commit = 2.6.1
+dep_ranch_commit = 1.7.1
 DEP_PLUGINS = cowboy
 
 app:: priv/static/js/main.js priv/static/js/react-codemirror.js priv/static/em_main.js
