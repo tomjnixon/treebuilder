@@ -30,6 +30,18 @@ compile_for_device(CppCodes) ->
 init([]) ->
     {ok, #state{}}.
 
+ensure_file_contents(FullPath, Contents) ->
+    ShouldWrite = case file:read_file(FullPath) of
+                      {error, _} -> true;
+                      {ok, Contents} -> false;
+                      {ok, _} -> true
+                  end,
+
+    case ShouldWrite of
+        true -> file:write_file(FullPath, Contents);
+        false -> ok
+    end.
+
 handle_call({compile_for_device, CppCodes}, _From, State) ->
     {ok, TemplateDir} = application:get_env(treebuilder, template_dir),
     SrcPath = filename:join(TemplateDir, "src"),
@@ -48,7 +60,8 @@ handle_call({compile_for_device, CppCodes}, _From, State) ->
     
     % put in the pio config
     PIOConfDest = filename:join(TemplateDir, "platformio.ini"),
-    {ok, _} = exec:run([os:find_executable("cp"), PIOConfSource, PIOConfDest], [sync]),
+    {ok, PIOConfContents} = file:read_file(PIOConfSource),
+    ok = ensure_file_contents(PIOConfDest, PIOConfContents),
 
     % Put the correct code in the src dir.
     exec:run([os:find_executable("cp"), "-r", CompileDir, SrcPath], [sync]),
