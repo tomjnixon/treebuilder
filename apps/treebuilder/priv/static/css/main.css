@@ -29,6 +29,7 @@ header {
     display:flex;
     flex-flow: column;
     flex: 3;
+    min-width: 250px;
 }
 
 .preview {
