@@ -1,39 +1,5 @@
 'use strict';
 
-// function connect_ws(url) {
-//     if (url === undefined)
-//         url = "ws://" + window.location.host + "/ws";
-
-//     return {
-//         to_send_reconnect: [],
-//         to_send: [],
-
-//         send_all_queued: function() {
-//             while (this.to_send.length && this.ws.readyState == this.ws.OPEN)
-//                 this.ws.send(this.to_send.shift());
-//         }
-
-//         connect: function(reconnect) {
-//             this.ws = new WebSocket(ws_url);
-
-//             this.ws.addEventListener("open", (function() {
-//                 this.to_send = _.concat(this.to_send, this.to_send_reconnect)
-//                 this.send_all_queued();
-//             }).bind(this));
-
-//             this.ws.addEventListener("close", (function() {
-//                 setTimeout(this.connect.bind(this), 1000);
-//             }).bind(this));
-//         },
-
-//         subscribe: function(topic) {
-//             var message = JSON.stringify({type: "subscribe", topic: topic});
-//             this.to_send.push(message);
-//             this.to_send.push(message);
-//         }
-//     };
-// }
-
 class WSConnection {
     constructor(url) {
         if (url === undefined)
