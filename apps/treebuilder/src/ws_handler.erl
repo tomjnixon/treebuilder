@@ -14,20 +14,55 @@ init(Req, State) ->
 websocket_init(_State) ->
     {ok, #state{}}.
 
-websocket_handle({_Type, Data}, State=#state{subscriptions=Subscriptions}) ->
-    case jiffy:decode(Data, [return_maps]) of
+error_resp(Message) ->
+    {reply, {close, 3000, Message}, closed}.
+
+handle_json_msg(Message, State=#state{subscriptions=Subscriptions}) ->
+    case Message of
         #{<<"type">> := <<"subscribe">>,
-          <<"topic">> := Topic} ->
-            ebus:sub(self(), {user, Topic}),
+          <<"topic">> := Topic}
+          when is_binary(Topic) ->
+            ok = ebus:sub(self(), {user, Topic}),
             {ok, State#state{subscriptions=[Topic|Subscriptions]}};
+        #{<<"type">> := <<"subscribe">>} ->
+            error_resp(<<"missing or incorrect topic">>);
+
         #{<<"type">> := <<"publish">>,
           <<"topic">> := Topic,
-          <<"payload64">> := Payload64} ->
-            ebus:pub({user, Topic}, {user, Topic, base64:decode(Payload64)}),
-            {ok, State};
+          <<"payload64">> := Payload64}
+          when is_binary(Topic), is_binary(Payload64) ->
+            try base64:decode(Payload64) of
+                Payload ->
+                    ok = ebus:pub({user, Topic}, {user, Topic, Payload}),
+                    {ok, State}
+            catch
+                error:_ -> error_resp("could not parse payload64")
+            end;
+        #{<<"type">> := <<"publish">>} ->
+            error_resp(<<"missing or incorrect topic and/or payload64">>);
+
         #{<<"type">> := <<"unsub_all">>} ->
-            [ebus:unsub(self(), {user, Topic}) || Topic <- Subscriptions],
-            {ok, State#state{subscriptions=[]}}
+            [ok = ebus:unsub(self(), {user, Topic}) || Topic <- Subscriptions],
+            {ok, State#state{subscriptions=[]}};
+
+        #{<<"type">> := _} ->
+            error_resp(<<"unknown type">>);
+        #{} ->
+            error_resp(<<"missing type">>);
+        _ ->
+            error_resp(<<"messages must be objects">>)
+    end.
+
+websocket_handle({_Type, Data}, State) ->
+    try jiffy:decode(Data, [return_maps]) of
+        Message -> handle_json_msg(Message, State)
+    catch
+        {error, {Char, ErrorAtom}} ->
+            Error = erlang:iolist_to_binary(
+                      io_lib:format(
+                        "json error at char ~p: ~p~n",
+                        [Char, ErrorAtom])),
+            error_resp(Error)
     end;
 websocket_handle(_Frame, State) ->
     {ok, State}.
