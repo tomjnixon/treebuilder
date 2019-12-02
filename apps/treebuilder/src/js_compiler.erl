@@ -45,7 +45,7 @@ handle_call({compile_js, CppCode}, _From, State) ->
     
     ok = file:write_file(InFile, CppCode),
     
-    Cmd = ["/usr/lib/emscripten/em++",
+    Cmd = [os:find_executable("em++"),
            "-Wall", "-Werror", "-fcolor-diagnostics",
            "-s", "SIDE_MODULE=1",
            "-s", "WASM=0",
